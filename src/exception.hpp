@@ -3,18 +3,35 @@
 
 #include <stdexcept>
 #include <string>
-#include <stacktrace>
+#include <iomanip>
+#include <print>
+
+#include <execinfo.h>
 
 
 namespace game {
 
-class Exception : public std::runtime_error {
+class StackTrace {
 public:
-   explicit Exception(const std::string& what);
-   auto stackTrace() const -> std::string;
+   StackTrace(int skip_lines = 0);
+   [[nodiscard]] auto getTrace() const-> const std::string& {
+      return _trace;
+   }
 
 private:
-   std::stacktrace _trace;
+   std::string _trace;
+   static constexpr uint16_t  MAX_BACKTRACE_DEPTH = 128;
+   static auto _demangle(const std::string& name) -> std::string;
+};
+
+
+class Exception final : public std::runtime_error {
+public:
+   explicit Exception(const std::string& what);
+   [[nodiscard]] auto stackTrace() const -> std::string;
+
+private:
+   StackTrace _trace;
 };
 
 
@@ -23,11 +40,11 @@ private:
 
 template<>
 struct std::formatter<game::Exception> {
-   constexpr auto parse(const std::format_parse_context &ctx) {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
       return std::cbegin(ctx);
    }
 
-   auto format(const game::Exception &exception, std::format_context &ctx) const {
+   static auto format(const game::Exception &exception, std::format_context &ctx) {
       return std::format_to(ctx.out(), "{}\n {}", exception.what(), exception.stackTrace());
    }
 };

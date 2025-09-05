@@ -14,7 +14,7 @@ namespace game {
       const std::string_view& msg,
       Args && ...args) -> void {
       if (!predicate) {
-         const std::string message = std::format("{0}{1}{2}",COLOR_VIOLET,msg,RESET_COLOR);
+         const std::string message = std::format("{}",msg);
          throw Exception(std::vformat(msg,
             std::make_format_args(std::forward<Args>(args)...)));
       }

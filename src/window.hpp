@@ -1,15 +1,22 @@
 #ifndef GAME_TUTORIAL_WINDOW_HPP
 #define GAME_TUTORIAL_WINDOW_HPP
 
-#include <cstdint>
-#include <Windows.h>
+
+#include <Foundation/Foundation.hpp>
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_metal.h>
 
 #include "auto_release.hpp"
 
 namespace game {
+   typedef std::pair<MTL::Function *,MTL::Function *> ShaderFunctions;
 class Window {
 public:
    Window(std::uint32_t width, std::uint32_t height);
+   ~Window();
 
    Window(const Window&) = delete;
    auto operator=(const Window&) -> Window& = delete;
@@ -18,17 +25,19 @@ public:
    auto operator=(Window&&) -> Window& = default;
 
    [[nodiscard]] auto running() const -> bool ;
-   auto swap() const -> void;
-private:
-   ::WNDCLASSA _wc;
-   AutoRelease<::HWND,{}> _win;
-   AutoRelease<::HDC,{}>  _dc;
+   auto update() -> void;
 
-   static auto _resolve_wgl_functions(::HINSTANCE instance) -> void;
-   template<class T>
-   static auto _resolve_gl_functions(T &function, const std::string& name) -> void;
-   static auto _init_opengl(HDC dc) -> void;
-   static auto _resolve_global_opengl_functions() -> void;
+   [[nodiscard]] auto getDevice() const -> MTL::Device* {return _device;}
+   auto setUpPipelineState(const ShaderFunctions &funcs) -> void;
+
+private:
+   AutoRelease<::SDL_Window*,{}>                  _window{};
+   AutoRelease<::SDL_MetalView,{}>                _view{};
+   AutoRelease<MTL::RenderPipelineState*,{}>      _rps{};
+   SDL_Event       _event{};
+   bool            _is_running{false};
+   MTL::Device*    _device{nullptr};
+   CA::MetalLayer* _layer{nullptr};
 };
 }
 

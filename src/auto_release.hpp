@@ -34,12 +34,16 @@ public:
       return *this;
    }
 
+   auto operator->() const noexcept -> T {
+      return _obj;
+   }
+
    auto swap(AutoRelease& other) noexcept -> void {
       std::ranges::swap(_obj,other._obj);
       std::ranges::swap(_deleter,other._deleter);
    }
 
-   T get() const {
+   auto get() const noexcept -> T {
       return _obj;
    }
 
