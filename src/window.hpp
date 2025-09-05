@@ -30,6 +30,9 @@ public:
    [[nodiscard]] auto getDevice() const -> MTL::Device* {return _device;}
    auto setUpPipelineState(const ShaderFunctions &funcs) -> void;
 
+   auto setMeshBufer(MTL::Buffer* buff) -> void  {_mesh_buffer = buff;}
+
+
 private:
    AutoRelease<::SDL_Window*,{}>                  _window{};
    AutoRelease<::SDL_MetalView,{}>                _view{};
@@ -38,6 +41,7 @@ private:
    bool            _is_running{false};
    MTL::Device*    _device{nullptr};
    CA::MetalLayer* _layer{nullptr};
+   MTL::Buffer* _mesh_buffer{nullptr};
 };
 }
 

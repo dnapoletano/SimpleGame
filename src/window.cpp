@@ -1,4 +1,3 @@
-#include <iostream>
 #include <print>
 
 #include "error.hpp"
@@ -57,7 +56,7 @@ auto Window::setUpPipelineState(const ShaderFunctions &funcs) -> void {
       [](auto t){t->release();}
    };
 
-   game::ensure(_rps.get() !=nullptr,
+   game::ensure(_rps.get() != nullptr,
       std::format("non pipeline descriptor ->\n{}",
                (error!=nullptr)?error->description()->utf8String():"")
       );
@@ -82,9 +81,10 @@ auto Window::update() -> void {
 
    const auto encoder = buffer->renderCommandEncoder(renderPassDescriptor.get());
    encoder->setRenderPipelineState(_rps.get());
+   encoder->setVertexBuffer(_mesh_buffer,0,0);
    constexpr auto typeTriangle = MTL::PrimitiveTypeTriangle;
    constexpr NS::UInteger vertexStart = 0;
-   constexpr NS::UInteger vertexCount = 3;
+   constexpr NS::UInteger vertexCount = 6;
    encoder->drawPrimitives(typeTriangle,vertexStart,vertexCount);
    encoder->endEncoding();
    buffer->presentDrawable(surface);

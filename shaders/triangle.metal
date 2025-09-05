@@ -1,6 +1,11 @@
 #include <metal_stdlib>
 using namespace metal;
 
+struct VertexData {
+    float4 position;
+    half3 color;
+};
+
 struct VertexPayload {              //Mesh Vertex Type
     float4 position [[position]];   //Qualified attribute
     half3 color;                    //Half precision, faster
@@ -10,19 +15,6 @@ struct VertexPayload {              //Mesh Vertex Type
      For more builtin variables we can set besides position.
     */
 };
-
-constant float4 positions[] = {
-    float4(-0.75, -0.75, 0.0, 1.0), //bottom left: red
-    float4( 0.75, -0.75, 0.0, 1.0), //bottom right: green
-    float4(  0.0,  0.75, 0.0, 1.0), //center top: blue
-};
-
-constant half3 colors[] = {
-    half3(1.0, 0.0, 0.0), //bottom left: red
-    half3(0.0, 1.0, 0.0), //bottom right: green
-    half3(0.0, 0.0, 1.0), //center top: blue
-};
-
 /*
     The vertex qualifier registers this function in the vertex stage of the Metal API.
 
@@ -33,10 +25,10 @@ constant half3 colors[] = {
     table 5.2: Attributes for vertex function input arguments,
     for more info.
 */
-VertexPayload vertex vertexMain(uint vertexID [[vertex_id]]) {
+VertexPayload vertex vertexMain(uint vertexID [[vertex_id]], constant VertexData* vertexData) {
     VertexPayload payload;
-    payload.position = positions[vertexID];
-    payload.color = colors[vertexID];
+    payload.position = vertexData[vertexID].position;
+    payload.color = vertexData[vertexID].color;
     return payload;
 }
 

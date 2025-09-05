@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <print>
 
+#include <source_location>
+
 #include <execinfo.h>
 
 
@@ -13,7 +15,7 @@ namespace game {
 
 class StackTrace {
 public:
-   StackTrace(int skip_lines = 0);
+   StackTrace(int skip_lines = 0, std::source_location loc = std::source_location::current());
    [[nodiscard]] auto getTrace() const-> const std::string& {
       return _trace;
    }
@@ -27,7 +29,7 @@ private:
 
 class Exception final : public std::runtime_error {
 public:
-   explicit Exception(const std::string& what);
+   explicit Exception(const std::string& what, std::source_location loc = std::source_location::current());
    [[nodiscard]] auto stackTrace() const -> std::string;
 
 private:
@@ -45,7 +47,7 @@ struct std::formatter<game::Exception> {
    }
 
    static auto format(const game::Exception &exception, std::format_context &ctx) {
-      return std::format_to(ctx.out(), "{}\n {}", exception.what(), exception.stackTrace());
+      return std::format_to(ctx.out(), "{}\n{}", exception.what(), exception.stackTrace());
    }
 };
 #endif //GAME_TUTORIAL_EXCEPTION_HPP

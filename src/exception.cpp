@@ -5,7 +5,7 @@
 #include "exception.hpp"
 
 namespace game {
-   StackTrace::StackTrace(const int skip_lines) {
+   StackTrace::StackTrace(const int skip_lines, const std::source_location loc) {
       void *trace[MAX_BACKTRACE_DEPTH];
       const int depth = backtrace(trace, MAX_BACKTRACE_DEPTH);
       for (int n = 0; n <depth; ++n) {
@@ -42,8 +42,8 @@ namespace game {
             }
             if (n < skip_lines) continue;
             _trace += std::format(
-               "{0:#06x} -> {1} ({2}) from {3}\n",
-               addr,_demangle(symname),linfo,info.dli_fname
+               "{0:#06x} -> {1} ({2}:{3})\n",
+               addr,_demangle(symname),loc.file_name(), loc.line()
             );
             if (std::string(info.dli_sname)=="main") break;
          }
@@ -58,9 +58,9 @@ namespace game {
    }
 
 
-   Exception::Exception(const std::string& what)
+   Exception::Exception(const std::string& what, const std::source_location loc)
       : std::runtime_error(what),
-        _trace(5)
+        _trace(5,loc)
    {
 
    }
