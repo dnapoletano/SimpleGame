@@ -27,8 +27,9 @@ struct VertexPayload {              //Mesh Vertex Type
 */
 VertexPayload vertex vertexMain(uint vertexID [[vertex_id]], constant VertexData* vertexData) {
     VertexPayload payload;
-    payload.position = vertexData[vertexID].position;
-    payload.color = vertexData[vertexID].color;
+    VertexData vert = vertexData[vertexID];
+    payload.position = vert.position;
+    payload.color = vert.color;
     return payload;
 }
 

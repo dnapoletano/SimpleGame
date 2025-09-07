@@ -2,7 +2,8 @@ add_executable(game_tutorial
         main.cpp
         window.cpp
         exception.cpp
-        error.hpp)
+        error.hpp
+        mesh.cpp)
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 

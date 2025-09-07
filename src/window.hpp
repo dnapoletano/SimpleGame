@@ -31,6 +31,7 @@ public:
    auto setUpPipelineState(const ShaderFunctions &funcs) -> void;
 
    auto setMeshBufer(MTL::Buffer* buff) -> void  {_mesh_buffer = buff;}
+   [[nodiscard]] auto getMeshBuffer() const -> MTL::Buffer * {return _mesh_buffer;}
 
 
 private:
