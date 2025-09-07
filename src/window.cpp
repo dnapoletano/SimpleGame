@@ -71,17 +71,19 @@ auto Window::update() -> void {
    const MTL::ClearColor clear_color{0.,0.,0.,1.};//152.0/255.0, 23.0/255.0, 42.0/255.0, 1.};
    const auto commandQueue = _device->newCommandQueue();
    const auto buffer = commandQueue->commandBuffer();
-   const auto renderPassDescriptor = AutoRelease<MTL::RenderPassDescriptor*,{}>{
-      MTL::RenderPassDescriptor::alloc()->init(),
-      [](auto t) {t->release();}
-   };
+   // const auto renderPassDescriptor = AutoRelease<MTL::RenderPassDescriptor*,{}>{
+   //    MTL::RenderPassDescriptor::alloc()->init(),
+   //    [](auto t) {t->release();}
+   // };
+   const auto renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
    const auto cd = renderPassDescriptor->colorAttachments()->object(0);
    cd->setTexture(surface->texture());
+
    cd->setLoadAction(MTL::LoadActionClear);
    cd->setClearColor(clear_color);
    cd->setStoreAction(MTL::StoreActionStore);
 
-   const auto encoder = buffer->renderCommandEncoder(renderPassDescriptor.get());
+   const auto encoder = buffer->renderCommandEncoder(renderPassDescriptor);
    encoder->setRenderPipelineState(_rps.get());
    encoder->setVertexBuffer(_mesh_buffer,0,0);
    constexpr auto typeTriangle = MTL::PrimitiveTypeTriangle;
@@ -92,6 +94,12 @@ auto Window::update() -> void {
    buffer->presentDrawable(surface);
    buffer->commit();
    buffer->waitUntilCompleted();
+
+   cd->release();
+   encoder->release();
+   buffer->release();
+   surface->release();
+   commandQueue->release();
 
    switch (_event.type) {
       case SDL_QUIT:
