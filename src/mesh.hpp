@@ -20,7 +20,10 @@ public:
    ~Mesh();
 
    [[nodiscard]] auto getVertexArray() const -> const std::vector<VertexData>& {return _vertices;}
+   [[nodiscard]] auto accessVertexArray() -> std::vector<VertexData>* {return &_vertices;}
    [[nodiscard]] constexpr auto size() const -> size_t {return _vertices.size()*sizeof(VertexData);}
+   [[nodiscard]] constexpr auto n_verts() const -> size_t {return _vertices.size();}
+
 
 private:
    std::vector<VertexData> _vertices;
