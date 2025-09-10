@@ -25,10 +25,14 @@ struct VertexPayload {              //Mesh Vertex Type
     table 5.2: Attributes for vertex function input arguments,
     for more info.
 */
-VertexPayload vertex vertexMain(uint vertexID [[vertex_id]], constant VertexData* vertexData) {
+VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
+    constant VertexData* vertexData,
+    constant float4x4& transform [[buffer(1)]],
+    constant float4x4& proj [[buffer(2)]]) {
+
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
-    payload.position = vert.position;
+    payload.position = proj*(transform*vert.position);
     payload.color = vert.color;
     return payload;
 }

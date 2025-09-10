@@ -57,26 +57,26 @@ auto main() -> int {
 
       win.setMeshBufer(VertexBuffer.get());
       //auto translation = game::Matrix4(game::Vector3(0.001f, 0.001f,0.f));
-      auto rot = game::Matrix4(game::Vector3(0.0f,0.0f,1.f),0.01f);
+
 
       while (win.running()) {
 
 
-         for (std::vector<game::VertexData>::iterator it = mesh.accessVertexArray()->begin(); it!=mesh.accessVertexArray()->end(); ++it) {
-            auto vertex_position = static_cast<game::Vector3>(it->position);
-            vertex_position = (rot*vertex_position);
-            it->position = simd::float4{vertex_position->x,vertex_position->y,vertex_position->z,1.f};
-         }
-         const auto VertexBuffer_l = game::AutoRelease<MTL::Buffer*,{}>{
-            win.getDevice()->newBuffer(mesh.getVertexArray().data(),
-               mesh.size(),
-               MTL::ResourceStorageModeShared),
-            [](auto t) {t->release();}
-         };
-         game::ensure(VertexBuffer_l.get()!=nullptr,
-            "Cannot allocate vertex buffer");
-
-         win.setMeshBufer(VertexBuffer_l.get());
+         // for (std::vector<game::VertexData>::iterator it = mesh.accessVertexArray()->begin(); it!=mesh.accessVertexArray()->end(); ++it) {
+         //    auto vertex_position = static_cast<game::Vector3>(it->position);
+         //    vertex_position = (rot*vertex_position);
+         //    it->position = simd::float4{vertex_position->x,vertex_position->y,vertex_position->z,1.f};
+         // }
+         // const auto VertexBuffer_l = game::AutoRelease<MTL::Buffer*,{}>{
+         //    win.getDevice()->newBuffer(mesh.getVertexArray().data(),
+         //       mesh.size(),
+         //       MTL::ResourceStorageModeShared),
+         //    [](auto t) {t->release();}
+         // };
+         // game::ensure(VertexBuffer_l.get()!=nullptr,
+         //    "Cannot allocate vertex buffer");
+         //
+         // win.setMeshBufer(VertexBuffer_l.get());
 
 
          win.update();

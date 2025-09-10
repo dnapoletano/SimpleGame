@@ -1,10 +1,11 @@
 #include <print>
 #include <iostream>
+#include <numbers>
 #include "error.hpp"
 #include "window.hpp"
 
 #include "mesh.hpp"
-
+#include "matrix4.hpp"
 namespace game {
 
 Window::Window(const std::uint32_t width, const std::uint32_t height){
@@ -86,6 +87,30 @@ auto Window::update() -> void {
    const auto encoder = buffer->renderCommandEncoder(renderPassDescriptor);
    encoder->setRenderPipelineState(_rps.get());
    encoder->setVertexBuffer(_mesh_buffer,0,0);
+
+   static auto t = 0.0f;
+   static auto x = 0.0f;
+   static auto z = 0.0f;
+   x = 2.f*simd::sin(t);
+   z = 2.f*simd::cos(t);
+   t+=0.01;
+
+   const auto rot = game::Matrix4::lookAt(
+      {x, 0.0f, z},
+      {0.0f, 0.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f}
+      );
+
+   const auto proj = Matrix4::perspective(
+      std::numbers::pi_v<float>/4.0f,
+      static_cast<float>(surface->layer()->drawableSize().width),
+      static_cast<float>(surface->layer()->drawableSize().height),
+      0.1f,
+      100.0f
+      );
+
+   encoder->setVertexBytes(&rot.data(),sizeof(rot.data()),1);
+   encoder->setVertexBytes(&proj.data(),sizeof(proj.data()),2);
    constexpr auto typeTriangle = MTL::PrimitiveTypeTriangle;
    constexpr NS::UInteger vertexStart = 0;
    constexpr NS::UInteger vertexCount = 6;

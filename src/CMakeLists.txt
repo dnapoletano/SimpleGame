@@ -8,12 +8,6 @@ add_executable(game_tutorial
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 
-#target_compile_definitions(game_tutorial PUBLIC
-#        NS_PRIVATE_IMPLEMENTATION
-#        CA_PRIVATE_IMPLEMENTATION
-#        MTL_PRIVATE_IMPLEMENTATION
-#)
-
 target_compile_options(game_tutorial PUBLIC -Wall -Wextra -Werror -g)
 target_include_directories(game_tutorial PUBLIC
         /opt/homebrew/include

@@ -7,4 +7,16 @@ project(game_tutorial
         DESCRIPTION "test game tutorial"
         LANGUAGES C CXX)
 
+include(FetchContent)
+
+FetchContent_Declare( googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.15.2)
+
+FetchContent_GetProperties(googletest)
+
 add_subdirectory(src)
+
+enable_testing()
+include(CTest)
+add_subdirectory(tests)
