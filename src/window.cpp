@@ -6,6 +6,7 @@
 
 #include "mesh.hpp"
 #include "matrix4.hpp"
+
 namespace game {
 
 Window::Window(const std::uint32_t width, const std::uint32_t height){
@@ -52,6 +53,8 @@ auto Window::setUpPipelineState(const ShaderFunctions &funcs) -> void {
    const auto attach = pipeline_descriptor->colorAttachments()->object(0);
    pipeline_descriptor->setVertexFunction(funcs.first);
    pipeline_descriptor->setFragmentFunction(funcs.second);
+   pipeline_descriptor->setSampleCount(4);
+   pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
    attach->setPixelFormat(_layer->pixelFormat());
    NS::Error * error = nullptr;
    _rps = {
@@ -63,6 +66,16 @@ auto Window::setUpPipelineState(const ShaderFunctions &funcs) -> void {
       std::format("non pipeline descriptor ->\n{}",
                (error!=nullptr)?error->description()->utf8String():"")
       );
+   auto depth_stencil_descriptor = AutoRelease<MTL::DepthStencilDescriptor*,{}>{
+      MTL::DepthStencilDescriptor::alloc()->init(),
+      [](auto t) {t->release();}
+   };
+   depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
+   depth_stencil_descriptor->setDepthWriteEnabled(true);
+   _dss = {
+      _device->newDepthStencilState(depth_stencil_descriptor.get()),
+      [](auto t) {t->release();}
+   };
 }
 
 auto Window::update() -> void {
@@ -96,7 +109,7 @@ auto Window::update() -> void {
    t+=0.01;
 
    const auto rot = game::Matrix4::lookAt(
-      {x, 0.0f, z},
+      {x, z, z},
       {0.0f, 0.0f, 0.0f},
       {0.0f, 1.0f, 0.0f}
       );
@@ -108,12 +121,15 @@ auto Window::update() -> void {
       0.1f,
       100.0f
       );
-
+   //encoder->setTriangleFillMode(MTL::TriangleFillModeLines);
+   encoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
+   encoder->setCullMode(MTL::CullModeBack);
+   encoder->setDepthStencilState(_dss.get());
    encoder->setVertexBytes(&rot.data(),sizeof(rot.data()),1);
    encoder->setVertexBytes(&proj.data(),sizeof(proj.data()),2);
    constexpr auto typeTriangle = MTL::PrimitiveTypeTriangle;
    constexpr NS::UInteger vertexStart = 0;
-   constexpr NS::UInteger vertexCount = 6;
+   constexpr NS::UInteger vertexCount = 36;
    encoder->drawPrimitives(typeTriangle,vertexStart,vertexCount);
    encoder->endEncoding();
    buffer->presentDrawable(surface);

@@ -38,6 +38,7 @@ private:
    AutoRelease<::SDL_Window*,{}>                  _window{};
    AutoRelease<::SDL_MetalView,{}>                _view{};
    AutoRelease<MTL::RenderPipelineState*,{}>      _rps{};
+   AutoRelease<MTL::DepthStencilState*,{}>        _dss{};
    SDL_Event       _event{};
    bool            _is_running{false};
    MTL::Device*    _device{nullptr};
