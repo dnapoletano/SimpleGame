@@ -1,8 +1,6 @@
 #ifndef GAME_TUTORIAL_WINDOW_HPP
 #define GAME_TUTORIAL_WINDOW_HPP
 
-
-#include <Foundation/Foundation.hpp>
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
@@ -10,9 +8,10 @@
 #include <SDL2/SDL_metal.h>
 
 #include "auto_release.hpp"
+#include "renderer.hpp"
 
 namespace game {
-   typedef std::pair<MTL::Function *,MTL::Function *> ShaderFunctions;
+
 class Window {
 public:
    Window(std::uint32_t width, std::uint32_t height);
@@ -28,22 +27,21 @@ public:
    auto update() -> void;
 
    [[nodiscard]] auto getDevice() const -> MTL::Device* {return _device;}
-   auto setUpPipelineState(const ShaderFunctions &funcs) -> void;
-
-   auto setMeshBufer(MTL::Buffer* buff) -> void  {_mesh_buffer = buff;}
-   [[nodiscard]] auto getMeshBuffer() const -> MTL::Buffer * {return _mesh_buffer;}
+   [[nodiscard]] auto getRenderer() const -> game::Renderer* {return _renderer.get();}
 
 
 private:
    AutoRelease<::SDL_Window*,{}>                  _window{};
    AutoRelease<::SDL_MetalView,{}>                _view{};
-   AutoRelease<MTL::RenderPipelineState*,{}>      _rps{};
-   AutoRelease<MTL::DepthStencilState*,{}>        _dss{};
+
+   AutoRelease<game::Renderer *, {}> _renderer;
+
    SDL_Event       _event{};
    bool            _is_running{false};
+
    MTL::Device*    _device{nullptr};
    CA::MetalLayer* _layer{nullptr};
-   MTL::Buffer* _mesh_buffer{nullptr};
+
 };
 }
 

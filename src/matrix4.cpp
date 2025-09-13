@@ -31,8 +31,4 @@ Matrix4::Matrix4(Vector3 axis, const float& theta)
    _elements.columns[2][2] = axis->z*axis->z*(1.f-simd::cos(theta)) + simd::cos(theta);
 }
 
-auto Matrix4::operator*(const Vector3& vec) const -> Vector3 {
-   return static_cast<Vector3>(_elements * simd::float4{vec->x,vec->y,vec->z,1.f});
-}
-
 }

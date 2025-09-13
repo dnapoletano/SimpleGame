@@ -9,6 +9,7 @@ namespace game {
 class Vector3 {
 public:
    Vector3(const float x, const float y, const float z) : _vector{x,y,z}{}
+   Vector3(const float x, const float y, const float z, [[maybe_unused]] const float w) : _vector{x,y,z}{}
    Vector3(const simd::float3& vec) : _vector(vec.xyz) {}
    Vector3(const simd::float4& vec) : _vector(vec.xyz) {}
    [[nodiscard]] auto x() const -> float {return _vector.x;}

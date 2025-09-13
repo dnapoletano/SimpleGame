@@ -23,7 +23,15 @@ public:
       return &_elements;
    }
 
-   auto operator*(const Vector3& vec) const -> Vector3;
+   constexpr auto operator*(const Vector3& vec) const -> Vector3 {
+      return (_elements * simd::float4{vec->x,vec->y,vec->z,1.f});
+   }
+
+   constexpr auto operator*(const Matrix4& matrix) const -> Matrix4 {
+      return Matrix4(_elements * matrix.data());
+   }
+
+
    static constexpr auto lookAt(const Vector3& eye, const Vector3& look_at, const Vector3& up) -> Matrix4 {
       const auto f = simd::normalize((eye-look_at).data());
       const auto x = simd::normalize(simd::cross(up.data(),f));

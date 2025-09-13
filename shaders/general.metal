@@ -32,7 +32,7 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
 
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
-    payload.position = proj*(transform*vert.position);
+    payload.position = vert.position; //proj*(transform*vert.position);
     payload.color = vert.color;
     return payload;
 }

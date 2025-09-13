@@ -6,11 +6,12 @@
 #include <iostream>
 
 #include "auto_release.hpp"
+#include "vector3.hpp"
 
 namespace game {
 
 struct VertexData {
-   simd::float4 position;
+   Vector3 position;
    simd::half3 color;
 };
 
