@@ -17,7 +17,7 @@ public:
 
    Entity(Mesh * const mesh, Material * const material, const Vector3& position)
       : Entity(mesh,material) {
-      const auto translation = Matrix4(position);
+      const auto translation = Matrix4(position).data();
       for (auto &[pos, color] : *(_mesh->accessVertexArray())) {
          pos = translation * pos;
       }
@@ -26,8 +26,8 @@ public:
    Entity(Mesh *const mesh, Material *const material,
       const Vector3 &position, const Vector3& axis, const float theta)
       : Entity(mesh,material) {
-      const auto translation = Matrix4(position);
-      const auto rotation = Matrix4(axis,theta);
+      const auto translation = Matrix4(position).data();
+      const auto rotation = Matrix4(axis,theta).data();
       for (auto &[pos, color]: *(_mesh->accessVertexArray())) {
          pos = translation * rotation * pos;
       }

@@ -11,7 +11,7 @@
 namespace game {
 
 struct VertexData {
-   Vector3 position;
+   simd::float4 position;
    simd::half3 color;
 };
 
