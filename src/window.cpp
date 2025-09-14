@@ -51,6 +51,7 @@ Window::~Window() {
 }
 
 auto Window::update() -> void {
+   const auto surface = _layer->nextDrawable();
    SDL_PollEvent(&_event);
    static auto t = 0.0f;
    static auto x = 0.0f;
@@ -59,15 +60,15 @@ auto Window::update() -> void {
    z = 2.f*simd::cos(t);
    t+=0.01;
    const Camera camera{std::numbers::pi_v<float> / 4.0f,
-                       static_cast<float>(_layer->nextDrawable()->layer()->drawableSize().width),
-                       static_cast<float>(_layer->nextDrawable()->layer()->drawableSize().height),
+                       static_cast<float>(surface->layer()->drawableSize().width),
+                       static_cast<float>(surface->layer()->drawableSize().height),
                        0.1f,
                        100.0f,
                        {x, z, z},
                        {0.0f, 0.0f, 0.0f},
                        {0.0f, 1.0f, 0.0f}};
 
-   _renderer->render(camera);
+   _renderer->render(camera, surface);
 
    switch (_event.type) {
       case SDL_QUIT:

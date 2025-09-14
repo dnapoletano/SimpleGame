@@ -51,8 +51,7 @@ auto Renderer::setUpPipelineState(ShaderFunctions funcs) -> void {
    };
 }
 
-auto Renderer::render(const Camera& camera) const -> void {
-   const auto surface = _layer->nextDrawable();
+auto Renderer::render(const Camera& camera, CA::MetalDrawable * surface) const -> void {
    const MTL::ClearColor clear_color{0.,0.,0.,1.};
    const auto commandQueue = _device->newCommandQueue();
    const auto buffer = commandQueue->commandBuffer();

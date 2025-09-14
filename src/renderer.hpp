@@ -18,7 +18,7 @@ public:
 /// TODO: check as this is now passed by copy, as maps do not have
 ///       const access member functions
    auto setUpPipelineState(ShaderFunctions funcs) -> void;
-   auto render(const Camera& camera) const -> void;
+   auto render(const Camera& camera, CA::MetalDrawable* surface) const -> void;
 
    auto setMeshBufer(const Entity& entity) -> void;
    [[nodiscard]] auto getMeshBuffer() const -> MTL::Buffer * {return _mesh_buffer;}
