@@ -1,12 +1,14 @@
 #include <iostream>
-#include <fstream>
-#include <print>
 #include <format>
+#include <fstream>
+#include <numbers>
+#include <print>
 
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
 
+#include "camera.hpp"
 #include "error.hpp"
 #include "exception.hpp"
 #include "window.hpp"
@@ -17,15 +19,19 @@
 auto main() -> int {
    try {
       game::Window win(600u,400u);
-      game::Mesh mesh{};
-      game::Material material{"../../shaders/general.metal",win.getDevice()};
-      const game::Entity cube{&mesh,&material};
-      const auto renderer = win.getRenderer();
-      renderer->setUpPipelineState(cube.getShaderFunctions());
-      renderer->setMeshBufer(cube);
+      game::Scene scene{win.getDevice(),win.getLayer()};
 
+
+      const game::Camera camera{std::numbers::pi_v<float> / 4.0f,
+                          600.0f,400.0f,
+                          0.1f,
+                          100.0f,
+                          {0.0f, 0.0f, 5.0f},
+                          {0.0f, 0.0f, 0.0f},
+                          {0.0f, 1.0f, 0.0f}};
+      scene.setCamera(const_cast<game::Camera*>(&camera));
       while (win.running()) {
-         win.update();
+         win.update(scene);
       }
    } catch (const game::Exception& exception) {
       std::println(std::cerr << game::COLOR_VIOLET,"{}",exception);

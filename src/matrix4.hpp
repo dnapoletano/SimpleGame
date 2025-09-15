@@ -24,7 +24,7 @@ public:
    }
 
    constexpr auto operator*(const Vector3& vec) const -> Vector3 {
-      return (_elements * simd::float4{vec->x,vec->y,vec->z,1.f});
+      return (_elements * simd::float4{vec.x(),vec.y(),vec.z(),1.f});
    }
 
    constexpr auto operator*(const Matrix4& matrix) const -> Matrix4 {

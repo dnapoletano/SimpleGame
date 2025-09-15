@@ -1,3 +1,6 @@
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
+#include <Foundation/Foundation.hpp>
 #include "mesh.hpp"
 
 namespace game {
@@ -68,6 +71,16 @@ Mesh::Mesh()
 
 Mesh::~Mesh() {
    _vertices.clear();
+}
+
+auto Mesh::createBuffers(MTL::Device* const device) -> void {
+   ensure(static_cast<bool>(_mesh_buffer) == false,
+      "mesh buffer already exists!");
+   _mesh_buffer = {
+      device->newBuffer(_vertices.data(),size(),{}),
+      [](auto t) {t->release();}
+   };
+
 }
 
 }

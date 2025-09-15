@@ -11,12 +11,22 @@ public:
       const float height, const float near_plane,
       const float far_plane,
       const Vector3& eye, const Vector3& look_at, const Vector3& up)
-   : _camera(Matrix4::perspective(fov,width,height,near_plane,far_plane) * Matrix4::lookAt(eye,look_at,up)) {}
+      : _fov(fov), _width(width), _height(height), _nearPlane(near_plane), _farPlane{far_plane},
+      _eye(eye), _lookAt(look_at), _up(up),
+      _camera(Matrix4::perspective(_fov, _width, _height, _nearPlane, _farPlane) * Matrix4::lookAt(_eye, _lookAt, _up)) {}
 
    [[nodiscard]] constexpr auto getData() const -> const simd::float4x4 * { return &(_camera.data());}
    [[nodiscard]] constexpr auto size() const -> size_t { return sizeof(_camera.data());}
    [[nodiscard]] constexpr auto getCamera() const -> const Matrix4& {return _camera;}
+   auto translate(const Vector3& translate) -> void {
+      _eye = Matrix4(translate)*_eye;
+      _lookAt = Matrix4(translate) * _lookAt;
+      _camera = Matrix4::perspective(_fov, _width, _height, _nearPlane, _farPlane) * Matrix4::lookAt(_eye, _lookAt, _up);
+   }
+
 private:
+   float _fov{0.0f}, _width{0.0f}, _height{0.0f}, _nearPlane{0.0f}, _farPlane{0.0f};
+   Vector3 _eye, _lookAt, _up;
    Matrix4 _camera;
 };
 }

@@ -57,7 +57,7 @@ public:
       return _vector[index];
    }
 
-   auto operator->() const {
+   auto operator->()  {
       return &_vector;
    }
 private:

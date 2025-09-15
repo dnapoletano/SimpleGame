@@ -5,7 +5,8 @@ add_executable(game_tutorial
         error.hpp
         mesh.cpp
         matrix4.cpp
-        renderer.cpp)
+        renderer.cpp
+        scene.cpp)
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 

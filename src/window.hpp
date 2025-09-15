@@ -9,6 +9,7 @@
 
 #include "auto_release.hpp"
 #include "renderer.hpp"
+#include "scene.hpp"
 
 namespace game {
 
@@ -24,9 +25,10 @@ public:
    auto operator=(Window&&) -> Window& = default;
 
    [[nodiscard]] auto running() const -> bool ;
-   auto update() -> void;
+   auto update(Scene& scene) -> void;
 
    [[nodiscard]] auto getDevice() const -> MTL::Device* {return _device;}
+   [[nodiscard]] auto getLayer() const -> CA::MetalLayer* {return _layer;}
    [[nodiscard]] auto getRenderer() const -> game::Renderer* {return _renderer.get();}
 
 

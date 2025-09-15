@@ -41,7 +41,7 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
    _is_running = true;
 
    _renderer = {
-      new Renderer(_device,_layer),
+      new Renderer(_device),
       {}
    };
 }
@@ -50,33 +50,42 @@ Window::~Window() {
    SDL_Quit();
 }
 
-auto Window::update() -> void {
+auto Window::update(Scene& scene) -> void {
    const auto surface = _layer->nextDrawable();
    SDL_PollEvent(&_event);
-   static auto t = 0.0f;
-   static auto x = 0.0f;
-   static auto z = 0.0f;
-   x = 2.f*simd::sin(t);
-   z = 2.f*simd::cos(t);
-   t+=0.01;
-   const Camera camera{std::numbers::pi_v<float> / 4.0f,
-                       static_cast<float>(surface->layer()->drawableSize().width),
-                       static_cast<float>(surface->layer()->drawableSize().height),
-                       0.1f,
-                       100.0f,
-                       {x, z, z},
-                       {0.0f, 0.0f, 0.0f},
-                       {0.0f, 1.0f, 0.0f}};
+   auto camera = *scene.getCamera();
 
-   _renderer->render(camera, surface);
-
+   auto eye = Vector3{0.0f,0.0f,0.0f};
    switch (_event.type) {
       case SDL_QUIT:
          _is_running = false;
          break;
+      case SDL_KEYDOWN:
+         switch (_event.key.keysym.sym) {
+            case SDLK_RIGHT:
+            case SDLK_d:
+               eye->x += 1.0f;
+               break;
+         case SDLK_LEFT:
+         case SDLK_a:
+               eye->x -= 1.0f;
+               break;
+         case SDLK_UP:
+         case SDLK_w:
+               eye->z -= 1.0f;
+               break;
+         case SDLK_DOWN:
+         case SDLK_s:
+               eye->z += 1.0f;
+               break;
+         default:
+               break;
+         }
       default:
          break;
    }
+   camera.translate(eye);
+   _renderer->render(camera, surface,scene);
 }
 
 auto Window::running() const -> bool {

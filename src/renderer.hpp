@@ -6,30 +6,20 @@
 
 #include "auto_release.hpp"
 #include "camera.hpp"
-#include "entity.hpp"
-#include "material.hpp"
+#include "scene.hpp"
 
 namespace game {
 
 class Renderer {
 public:
-   Renderer(MTL::Device* device, CA::MetalLayer* layer);
+   Renderer(MTL::Device* device);
 
-/// TODO: check as this is now passed by copy, as maps do not have
-///       const access member functions
-   auto setUpPipelineState(ShaderFunctions funcs) -> void;
-   auto render(const Camera& camera, CA::MetalDrawable* surface) const -> void;
-
-   auto setMeshBufer(const Entity& entity) -> void;
-   [[nodiscard]] auto getMeshBuffer() const -> MTL::Buffer * {return _mesh_buffer;}
+   auto render(const Camera& camera,
+      CA::MetalDrawable* surface, Scene& scene) const -> void;
 
 private:
-   AutoRelease<MTL::RenderPipelineState*,{}>      _rps{};
-   AutoRelease<MTL::DepthStencilState*,{}>        _dss{};
-   MTL::Buffer* _mesh_buffer{nullptr};
 
    MTL::Device*    _device{nullptr};
-   CA::MetalLayer* _layer{nullptr};
 };
 
 }
