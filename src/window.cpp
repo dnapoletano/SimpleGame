@@ -78,9 +78,18 @@ auto Window::update(Scene& scene) -> void {
          case SDLK_s:
                eye->z += 1.0f;
                break;
+         case SDLK_ESCAPE:
+               _is_running = false;
+               break;
          default:
                break;
          }
+         break;
+
+      case SDL_MOUSEMOTION:
+         eye->x += static_cast<float>(_event.motion.xrel)/10.0f;//(_event.motion.xrel/600.0f > 0.5f) ? 1.0f: -1.0f;
+         eye->y += static_cast<float>(_event.motion.yrel)/10.0f;
+         break;
       default:
          break;
    }
