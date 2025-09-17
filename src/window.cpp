@@ -17,7 +17,7 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
          SDL_WINDOWPOS_CENTERED,
          static_cast<int>(width),
          static_cast<int>(height),
-         0),
+         SDL_WINDOW_RESIZABLE),
       ::SDL_DestroyWindow
    };
    game::ensure(_window.get()!=nullptr,
@@ -56,6 +56,8 @@ auto Window::update(Scene& scene) -> void {
    auto camera = *scene.getCamera();
 
    auto eye = Vector3{0.0f,0.0f,0.0f};
+   float yaw = 0.0f;
+   float pitch = 0.0f;
    switch (_event.type) {
       case SDL_QUIT:
          _is_running = false;
@@ -64,19 +66,19 @@ auto Window::update(Scene& scene) -> void {
          switch (_event.key.keysym.sym) {
             case SDLK_RIGHT:
             case SDLK_d:
-               eye->x += 1.0f;
+               eye = camera.getRight();
                break;
          case SDLK_LEFT:
          case SDLK_a:
-               eye->x -= 1.0f;
+               eye = -camera.getRight();
                break;
          case SDLK_UP:
          case SDLK_w:
-               eye->z -= 1.0f;
+               eye = camera.getDirection();
                break;
          case SDLK_DOWN:
          case SDLK_s:
-               eye->z += 1.0f;
+               eye = -camera.getDirection();
                break;
          case SDLK_ESCAPE:
                _is_running = false;
@@ -87,12 +89,15 @@ auto Window::update(Scene& scene) -> void {
          break;
 
       case SDL_MOUSEMOTION:
-         eye->x += static_cast<float>(_event.motion.xrel)/10.0f;//(_event.motion.xrel/600.0f > 0.5f) ? 1.0f: -1.0f;
-         eye->y += static_cast<float>(_event.motion.yrel)/10.0f;
+         yaw   = static_cast<float>(_event.motion.xrel)*0.02f;
+         pitch = static_cast<float>(_event.motion.yrel)*0.02f;
+         camera.adjust_yaw(yaw);
+         camera.adjust_pitch(-pitch);
          break;
       default:
          break;
    }
+
    camera.translate(eye);
    _renderer->render(camera, surface,scene);
 }

@@ -3,6 +3,7 @@
 
 #include "error.hpp"
 #include <simd/vector.h>
+#include <numbers>
 
 namespace game {
 
@@ -30,6 +31,11 @@ public:
       return Vector3{temp};
    }
 
+   [[nodiscard]] constexpr auto operator-() const -> Vector3 {
+      const auto temp = -_vector;
+      return Vector3{temp};
+   }
+
    [[nodiscard]] constexpr auto operator+=(const Vector3 &vec) const -> Vector3 {
       const auto temp = _vector + vec.data();
       return Vector3{temp};
@@ -50,14 +56,20 @@ public:
       return temp;
    }
 
-
+   [[nodiscard]] static constexpr auto directionFromYawPitch(const float yaw, const float pitch) -> Vector3 {
+      return Vector3{
+         simd::cos(yaw ) * simd::cos(pitch ),
+         simd::sin(pitch ),
+         simd::sin(yaw ) * simd::cos(pitch )
+      }.normalize();
+   }
 
    auto operator[](const size_t& index) const -> float {
       ensure(index < 3, std::format("Invalid index {}!",index));
       return _vector[index];
    }
 
-   auto operator->()  {
+   auto operator->() -> simd::float3* {
       return &_vector;
    }
 private:
