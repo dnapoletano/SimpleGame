@@ -30,6 +30,8 @@ public:
 
    [[nodiscard]] constexpr auto getVertexData() const -> const VertexData*  { return _mesh->getVertexArray().data();}
    [[nodiscard]] constexpr auto getVertexBuffer() const -> MTL::Buffer*  { return _mesh->getVertexBuffer();}
+   [[nodiscard]] constexpr auto getIndexBuffer() const -> MTL::Buffer*  { return _mesh->getIndexBuffer();}
+   [[nodiscard]] constexpr auto getIndexCount() const -> size_t  { return _mesh->getIndexCount();}
    [[nodiscard]] constexpr auto size() const -> size_t { return _mesh->size();}
    [[nodiscard]] constexpr auto getShaderFunctions() const -> ShaderFunctions {return _material->getShaderFunctions();}
    [[nodiscard]] constexpr auto getRenderPipelineState() const -> MTL::RenderPipelineState * {return _material->getRenderPipelineState();}

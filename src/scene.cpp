@@ -59,8 +59,9 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
       ensure(_camera != nullptr, "Camera not setup for render");
       encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
 
-      encoder->drawPrimitives(e.getPrimitive(),NS::UInteger{0},
-         NS::UInteger{e.getVertexCount()});
+      // encoder->drawPrimitives(e.getPrimitive(),NS::UInteger{0},
+      //    NS::UInteger{e.getVertexCount()});
+      encoder->drawIndexedPrimitives(e.getPrimitive(), e.getIndexCount(), MTL::IndexTypeUInt32,e.getIndexBuffer(),0);
    }
 
    encoder->endEncoding();

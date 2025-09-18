@@ -15,6 +15,10 @@ struct VertexData {
    simd::half3 color;
 };
 
+inline auto operator==(const VertexData& v1, const VertexData& v2) -> bool {
+   return v1.position.x == v2.position.x and v1.position.y == v2.position.y and v1.position.z == v2.position.z;
+}
+
 class Mesh {
 public:
    Mesh();
@@ -26,21 +30,63 @@ public:
    [[nodiscard]] constexpr auto n_verts() const -> size_t {return _vertices.size();}
    auto createBuffers(MTL::Device* device) -> void;
    [[nodiscard]] constexpr auto getVertexBuffer() const -> MTL::Buffer * {return _mesh_buffer.get();}
+   [[nodiscard]] constexpr auto getIndexBuffer() const -> MTL::Buffer * {return _index_buffer.get();}
+   [[nodiscard]] constexpr auto getIndexCount() const -> size_t {return _indexes.size();}
    [[nodiscard]] constexpr auto getPrimitiveType() const -> MTL::PrimitiveType {return _primitiveType;}
 
 private:
    std::vector<VertexData> _vertices;
+   std::vector<std::uint32_t> _indexes;
    AutoRelease<MTL::Buffer*> _mesh_buffer{};
+   AutoRelease<MTL::Buffer*> _index_buffer{};
    MTL::PrimitiveType _primitiveType {MTL::PrimitiveTypeTriangle};
 };
 }
 
-inline std::ostream& operator<<(std::ostream& oss, const simd::float4 inv) {
-   return oss << "(" << inv[0] << ", " << inv[1] << ", "<< inv[2] << ", " << inv[3] << ")";
-}
+template<>
+struct std::formatter<simd::float4> {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
+      return std::cbegin(ctx);
+   }
 
-inline std::ostream& operator<<(std::ostream& oss, const simd::half3 inv) {
-   return oss << "(" << static_cast<float>(inv[0]) << ", " << static_cast<float>(inv[1]) << ", "<< static_cast<float>(inv[2]) << ")";
-}
+   static auto format(const simd::float4 &vd, std::format_context &ctx) {
+      return std::format_to(ctx.out(),
+         "({}, {}, {}, {})", vd.x, vd.y,vd.z, vd.w);
+   }
+};
 
+template<>
+struct std::formatter<simd::half3> {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
+      return std::cbegin(ctx);
+   }
+
+   static auto format([[maybe_unused]] const simd::half3 &vd, std::format_context &ctx) {
+      return std::format_to(ctx.out(),"");
+   }
+};
+
+template<>
+struct std::formatter<game::VertexData> {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
+      return std::cbegin(ctx);
+   }
+
+   static auto format(const game::VertexData &vd, std::format_context &ctx) {
+      return std::format_to(ctx.out(),
+         "position = {}, color = {}", vd.position, vd.color);
+   }
+};
+
+template<>
+struct std::formatter<game::Mesh> {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
+      return std::cbegin(ctx);
+   }
+
+   static auto format(const game::Mesh &mesh, std::format_context &ctx) {
+      return std::format_to(ctx.out(),
+         "{}", mesh);
+   }
+};
 #endif //GAME_TUTORIAL_MESH_HPP
