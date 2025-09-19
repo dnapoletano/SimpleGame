@@ -6,23 +6,24 @@
 #include "material.hpp"
 #include "matrix4.hpp"
 #include "mesh.hpp"
+#include "texture.hpp"
 #include "vector3.hpp"
 
 namespace game {
 
 class Entity {
 public:
-   Entity(Mesh * const mesh, Material * const material)
-      : _mesh(mesh), _material(material) {}
+   Entity(Mesh * const mesh, Material * const material, Texture * const texture)
+      : _mesh(mesh), _material(material), _texture(texture) {}
 
-   Entity(Mesh * const mesh, Material * const material, const Vector3& position)
-      : Entity(mesh,material) {
+   Entity(Mesh * const mesh, Material * const material, Texture * const texture, const Vector3& position)
+      : Entity(mesh,material,texture) {
       _model = Matrix4(position);
    }
 
-   Entity(Mesh *const mesh, Material *const material,
+   Entity(Mesh *const mesh, Material *const material, Texture * const texture,
       const Vector3 &position, const Vector3& axis, const float theta)
-      : Entity(mesh,material) {
+      : Entity(mesh,material,texture) {
       const auto translation = Matrix4(position);
       const auto rotation = Matrix4(axis,theta);
       _model = rotation *translation;
@@ -37,6 +38,7 @@ public:
    [[nodiscard]] constexpr auto getRenderPipelineState() const -> MTL::RenderPipelineState * {return _material->getRenderPipelineState();}
    [[nodiscard]] constexpr auto getDepthStencilState() const -> MTL::DepthStencilState* {return _material->getDepthStencilState();}
    [[nodiscard]] constexpr auto getModel() const -> const Matrix4& {return _model;}
+   [[nodiscard]] constexpr auto getTexture() const -> MTL::Texture * {return _texture->getTexture();}
 
    [[nodiscard]] constexpr auto getPrimitive() const -> MTL::PrimitiveType {return _mesh->getPrimitiveType();}
    [[nodiscard]] constexpr auto getVertexCount() const -> size_t {return _mesh->n_verts();}
@@ -45,6 +47,7 @@ public:
 private:
    Mesh * _mesh{nullptr};
    Material * _material{nullptr};
+   Texture * _texture{nullptr};
    Matrix4 _model{};
 };
 

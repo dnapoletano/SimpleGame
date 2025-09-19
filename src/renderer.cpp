@@ -1,11 +1,4 @@
-#include <numbers>
-#include <simd/simd.h>
-
-
-#include "error.hpp"
-#include "matrix4.hpp"
 #include "renderer.hpp"
-
 
 namespace game {
 

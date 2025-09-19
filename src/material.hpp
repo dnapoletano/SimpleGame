@@ -14,15 +14,10 @@ typedef std::map<std::string,MTL::Function *> ShaderFunctions;
 
 class Material {
 public:
-   Material(const std::string& filename, MTL::Device * const device)
+   Material(const std::string_view shader, MTL::Device * const device)
       : _device(device){
-      std::ifstream shader(filename,std::ios::in);
-      game::ensure(shader.is_open(), std::format("Couldn't open shader file -> {}",filename));
 
-      const std::string shader_string(
-         std::istreambuf_iterator<char>{shader},
-         {});
-      const auto shader_source = NS::String::string(shader_string.data(),NS::ASCIIStringEncoding);
+      const auto shader_source = NS::String::string(shader.data(),NS::ASCIIStringEncoding);
       NS::Error * error = nullptr;
       MTL::Library * defaultLibrary = _device->newLibrary(shader_source, {}, &error);
       game::ensure(defaultLibrary != nullptr,

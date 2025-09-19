@@ -24,6 +24,7 @@ private:
    std::vector<game::Entity> _entities;
    std::vector<AutoRelease<Mesh*>> _unique_meshes;
    std::vector<AutoRelease<Material*>>_unique_materials;
+   std::vector<AutoRelease<Texture*>>_unique_textures;
    game::Camera *_camera{nullptr};
 
    MTL::Device*    _device{nullptr};
