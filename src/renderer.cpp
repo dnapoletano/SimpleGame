@@ -1,7 +1,6 @@
 #include "renderer.hpp"
 
 namespace game {
-
 Renderer::Renderer(MTL::Device* device)
    : _device(device){
 }

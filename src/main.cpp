@@ -1,6 +1,5 @@
 #include <iostream>
 #include <format>
-#include <fstream>
 #include <numbers>
 #include <print>
 
@@ -12,7 +11,6 @@
 #include "error.hpp"
 #include "exception.hpp"
 #include "window.hpp"
-#include "entity.hpp"
 
 #include <filesystem>
 

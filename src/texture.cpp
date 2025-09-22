@@ -29,21 +29,21 @@ Texture::Texture(const std::span<std::byte> data, const size_t width, const size
       [](auto t) {t->release();}
    };
 
-   MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatRGBA8Unorm, w,h,false);
-   textureDescriptor->setArrayLength(1);
    textureDescriptor->setWidth(w);
    textureDescriptor->setHeight(h);
-   textureDescriptor->setMipmapLevelCount(1);
    textureDescriptor->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
+   textureDescriptor->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageRenderTarget);
+   textureDescriptor->setStorageMode(MTL::StorageModeShared);
 
    _texture = {
       device->newTexture(textureDescriptor.get()),
       [](auto t) {return t;}
    };
 
-   const auto region = MTL::Region(0, 0, 0, w, h, 1);
-   const NS::UInteger bytesPerRow = 4 * w;
-   _texture->replaceRegion(region, 0, 0, raw_data.get(), bytesPerRow, 0);
+   const auto region = MTL::Region{0, 0, 0, width, height, 1};
+
+   const NS::UInteger bytesPerRow = 4 * width;
+   _texture->replaceRegion(region, 0, raw_data.get(), bytesPerRow);
 
 
 }

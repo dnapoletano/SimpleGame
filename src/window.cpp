@@ -36,7 +36,7 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
    _layer = static_cast<CA::MetalLayer *>(::SDL_Metal_GetLayer(_view.get()));
    game::ensure(_layer!=nullptr,
       "Couldn't get metal layer");
-   _layer->drawableSize() = CGSizeMake(width, height);
+   _layer->setDrawableSize(CGSizeMake(width, height));
    _layer->setDevice(_device);
    _is_running = true;
 
@@ -89,8 +89,8 @@ auto Window::update(Scene& scene) -> void {
          break;
 
       case SDL_MOUSEMOTION:
-         yaw   = static_cast<float>(_event.motion.xrel)*0.02f;
-         pitch = static_cast<float>(_event.motion.yrel)*0.02f;
+         yaw   = static_cast<float>(_event.motion.xrel)*0.01f;
+         pitch = static_cast<float>(_event.motion.yrel)*0.01f;
          camera.adjust_yaw(yaw);
          camera.adjust_pitch(-pitch);
          break;
