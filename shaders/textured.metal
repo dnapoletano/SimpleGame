@@ -4,17 +4,11 @@ using namespace metal;
 struct VertexData {
     float4 position;
     float2 uv;                      // UV coordinates
-    half3 color;
 };
 
 struct VertexPayload {              //Mesh Vertex Type
     float4 position [[position]];   //Qualified attribute
-    float2 uv;                      // UV coordinates
-    half3 color;                    //Half precision, faster
-    /*
-     See the metal spec, page 68, table 2.11: Mesh Vertex Attributes
-     For more builtin variables we can set besides position.
-    */
+    float2 uv;                      // UV coordinates/*
 };
 /*
     The vertex qualifier registers this function in the vertex stage of the Metal API.
@@ -34,7 +28,7 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
     payload.position = proj*(transform*vert.position);
-    payload.color = vert.color;
+    payload.uv = vert.uv;
     return payload;
 }
 
@@ -45,12 +39,12 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     table 5.5: Attributes for fragment function input arguments,
     for more info.
 */
-half4 fragment fragmentMain(VertexPayload frag [[stage_in]],
-                            texture2d<half> colorTexture [[ texture(0) ]])
+fragment float4 fragmentMain(VertexPayload frag [[stage_in]],
+                            texture2d<float> colorTexture [[ texture(0) ]])
 {
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
     // Sample the texture to obtain a color
-    const half4 colorSample = colorTexture.sample(textureSampler, frag.uv);
+    const auto colorSample = colorTexture.sample(textureSampler, frag.uv);
     return colorSample;
 }

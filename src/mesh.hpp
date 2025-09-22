@@ -13,7 +13,6 @@ namespace game {
 struct VertexData {
    simd::float4 position;
    simd::float2 uv;
-   simd::half3 color;
 };
 
 inline auto operator==(const VertexData& v1, const VertexData& v2) -> bool {
@@ -57,13 +56,14 @@ struct std::formatter<simd::float4> {
 };
 
 template<>
-struct std::formatter<simd::half3> {
+struct std::formatter<simd::float2> {
    static constexpr auto parse(const std::format_parse_context &ctx) {
       return std::cbegin(ctx);
    }
 
-   static auto format([[maybe_unused]] const simd::half3 &vd, std::format_context &ctx) {
-      return std::format_to(ctx.out(),"");
+   static auto format(const simd::float2 &vd, std::format_context &ctx) {
+      return std::format_to(ctx.out(),
+         "({}, {})", vd.x, vd.y);
    }
 };
 
@@ -75,7 +75,7 @@ struct std::formatter<game::VertexData> {
 
    static auto format(const game::VertexData &vd, std::format_context &ctx) {
       return std::format_to(ctx.out(),
-         "position = {}, color = {}", vd.position, vd.color);
+         "position = {}, uv = {}", vd.position, vd.uv);
    }
 };
 
