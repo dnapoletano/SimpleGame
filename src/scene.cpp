@@ -6,62 +6,60 @@
 namespace game {
 Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    : _device(device), _layer(layer) {
-   ResourceLoader resourceLoader{ROOT_DIR};
+   const ResourceLoader resourceLoader{ROOT_DIR};
    _entities.reserve(2);
 
    _unique_meshes.reserve(1);
    _unique_materials.reserve(1);
    _unique_textures.reserve(1);
    /// Can probably abstract this too
-   _unique_meshes.push_back(
-      AutoRelease<Mesh*>{new Mesh{},
-         [](auto t) {t->~Mesh();}});
+   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{}, [](auto t) { t->~Mesh(); }});
 
    const auto shader_path = std::filesystem::path(SHADERS_DIR) / "textured.metal";
    const auto shader_string = resourceLoader.loadString(shader_path.string());
    _unique_materials.push_back(
-      AutoRelease<Material*>{new Material{shader_string,_device},
-      [](auto t) {t->~Material();}});
+         AutoRelease<Material *>{new Material{shader_string, _device}, [](auto t) { t->~Material(); }});
 
    const auto texture_path = std::filesystem::path(ASSETS_DIR) / "container2.png";
    auto texture_data = resourceLoader.loadBytes(texture_path.string());
    _unique_textures.push_back(
-      AutoRelease<Texture*>{
-         new Texture{texture_data,500,500,_device},
-      [](auto t) {t->~Texture();}});
+         AutoRelease<Texture *>{new Texture{texture_data, 500, 500, _device}, [](auto t) { t->~Texture(); }});
 
-   for (const auto& u: _unique_meshes) {
+   for (const auto &u: _unique_meshes) {
       u->createBuffers(_device);
    }
-   for (const auto& m: _unique_materials) {
+   for (const auto &m: _unique_materials) {
       m->setUpRenderPipeLineState(_layer);
    }
 
-   _entities.emplace_back(_unique_meshes[0].get(),
-      _unique_materials[0].get(), _unique_textures[0].get(),
-      game::Vector3{0.0f,1.0f,0.0f});
-   _entities.emplace_back(_unique_meshes[0].get(),
-      _unique_materials[0].get(), _unique_textures[0].get(),
-      game::Vector3{0.0f,-1.0f,0.0f});
 
-   _entities.emplace_back(_unique_meshes[0].get(),
-   _unique_materials[0].get(), _unique_textures[0].get(),
-   game::Vector3{-2.0f,1.0f,0.0f});
-   _entities.emplace_back(_unique_meshes[0].get(),
-      _unique_materials[0].get(), _unique_textures[0].get(),
-      game::Vector3{2.0f,-1.0f,0.0f});
+   for (auto i = 0u; i < 10u; ++i) {
+      for (auto j = 0u; j < 10u; ++j) {
+         _entities.emplace_back(_unique_meshes[0].get(),
+            _unique_materials[0].get(), _unique_textures[0].get(),
+            Vector3{static_cast<float>(i) * 1.5f-5.f, 0.0f, static_cast<float>(j) * 1.5f-5.0f});
+      }
+   }
 
-   _entities.emplace_back(_unique_meshes[0].get(),
-   _unique_materials[0].get(), _unique_textures[0].get(),
-   game::Vector3{0.0f,1.0f,2.0f});
-   _entities.emplace_back(_unique_meshes[0].get(),
-      _unique_materials[0].get(),_unique_textures[0].get(),
-      game::Vector3{0.0f,-1.0f,-2.0f},
-      Vector3{1.0f,0.0f,0.0f}, 90.
-      );
+
+   /// create Light Buffers
+   _ambientLightBuffer = {
+      _device->newBuffer(&_ambientLight,sizeof(_ambientLight),MTL::StorageModeShared),
+      [](auto t) { t->release();}
+   };
+
+   _directionalLightBuffer = {
+      _device->newBuffer(&_directionalLight,sizeof(_directionalLight),MTL::StorageModeShared),
+      [](auto t) { t->release();}
+   };
+
+   _pointLightBuffer = {
+      _device->newBuffer(&_pointLight,sizeof(_pointLight),MTL::StorageModeShared),
+      [](auto t) { t->release();}
+   };
 }
 
-auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
+auto Scene::render(MTL::RenderCommandEncoder *encoder) -> void {
    for (const auto& e: _entities) {
       encoder->setRenderPipelineState(
          e.getRenderPipelineState());
@@ -74,6 +72,11 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
          "Camera not setup for render");
       encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
       encoder->setFragmentTexture(e.getTexture(),0);
+
+      /// could compress this into a unique buffer with offsets?
+      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
+      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
+      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
 
       encoder->drawIndexedPrimitives(e.getPrimitive(), e.getIndexCount(), MTL::IndexTypeUInt32,e.getIndexBuffer(),0);
    }

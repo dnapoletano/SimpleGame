@@ -10,7 +10,8 @@ add_executable(game_tutorial
         renderer.cpp
         scene.cpp
         texture.cpp
-        resource_reader.hpp)
+        resource_reader.hpp
+        light.hpp)
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 target_compile_definitions(game_tutorial PUBLIC

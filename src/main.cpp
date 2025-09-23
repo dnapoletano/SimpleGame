@@ -24,7 +24,7 @@ auto main() -> int {
                           600.0f,400.0f,
                           0.1f,
                           100.0f,
-                          {0.0f, 0.0f, 5.0f},
+                          {0.0f, 5.0f, 10.0f},
                           {0.0f, 0.0f, 0.0f},
                           {0.0f, 1.0f, 0.0f}};
       scene.setCamera(const_cast<game::Camera*>(&camera));

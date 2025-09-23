@@ -58,11 +58,20 @@ public:
 
    [[nodiscard]] static constexpr auto directionFromYawPitch(const float yaw, const float pitch) -> Vector3 {
       return Vector3{
-         simd::cos(yaw ) * simd::cos(pitch ),
-         simd::sin(pitch ),
-         simd::sin(yaw ) * simd::cos(pitch )
+         simd::cos(yaw) * simd::cos(pitch),
+         simd::sin(pitch),
+         simd::sin(yaw) * simd::cos(pitch)
       }.normalize();
    }
+
+   [[nodiscard]] static constexpr auto yawFromDirection(const Vector3 direction) -> float {
+      return simd::atan2(direction.z(),direction.x());
+   }
+
+   [[nodiscard]] static constexpr auto pitchFromDirection(const Vector3 direction) -> float {
+      return simd::atan2(direction.y(),simd::length(direction.data()));
+   }
+
 
    auto operator[](const size_t& index) const -> float {
       ensure(index < 3, std::format("Invalid index {}!",index));

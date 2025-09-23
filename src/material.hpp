@@ -9,6 +9,8 @@
 #include "auto_release.hpp"
 #include "error.hpp"
 
+#include <iostream>
+
 namespace game {
 typedef std::map<std::string,MTL::Function *> ShaderFunctions;
 
@@ -20,6 +22,9 @@ public:
       const auto shader_source = NS::String::string(shader.data(),NS::ASCIIStringEncoding);
       NS::Error * error = nullptr;
       MTL::Library * defaultLibrary = _device->newLibrary(shader_source, {}, &error);
+      if (defaultLibrary==nullptr and error!=nullptr) {
+         std::cout << error->localizedDescription()->utf8String() << std::endl;
+      }
       game::ensure(defaultLibrary != nullptr,
          std::format("no library ->\n{}",
                   (error!=nullptr) ? error->localizedDescription()->utf8String():"")

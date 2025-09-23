@@ -2,15 +2,33 @@
 using namespace metal;
 
 struct VertexData {
-    float4 position;
-    float3 normal;
-    float2 uv;                      // UV coordinates
+   float4 position;
+   float3 normal;
+   float2 uv;
+};
+
+struct AmbientLight {
+   float strenght;
+   float4 colour;
+};
+
+struct DirectionalLight {
+   float strenght;
+   float4 colour;
+   float3 direction;
+};
+
+struct PointLight {
+   float strenght;
+   float4 colour;
+   float3 position;
 };
 
 struct VertexPayload {              //Mesh Vertex Type
     float4 position [[position]];   //Qualified attribute
     float3 normal;
     float2 uv;                      // UV coordinates/*
+    float4 wPosition;
 };
 /*
     The vertex qualifier registers this function in the vertex stage of the Metal API.
@@ -30,26 +48,29 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
     payload.position = proj*(transform*vert.position);
+    payload.wPosition = vert.position;
     payload.normal = vert.normal;
     payload.uv = vert.uv;
     return payload;
 }
 
 
-float4 calcAmbientLight(float4 albedo) {
-    constexpr auto ambient_light_factor = 0.3f;
-    constexpr auto ambient_light_color = float4(1.0f,1.0f,1.0f,1.0f);
-    const auto ambient_light = ambient_light_factor * ambient_light_color;
-    return ambient_light * albedo;
+float4 calcAmbientLight(constant AmbientLight& al, float4 albedo) {
+    return float4(al.strenght * al.colour.rgb * albedo.rgb,1.0f);
 }
 
-float4 calcDirectionalLight(float3 normal, float4 albedo) {
-    constexpr auto directional_light_intensity = 0.5f;
-    constexpr auto directional_light_color = float4(1.0f,1.0f,1.0f,1.0f);
-    const auto directional_light_direction = simd::normalize(float3(1.0f,1.0f,1.0f));
-    const auto diff = max(dot(normal,directional_light_direction),0.0);
-    const auto dir_colour = float4((diff * directional_light_color).xyz,1.0);
-    return dir_colour * albedo;
+float4 calcDirectionalLight(constant DirectionalLight& dl, float3 normal, float4 albedo) {
+    const auto norm = simd::normalize(-dl.direction);
+    const auto diff = max(dot(normal,norm),0.0);
+    const auto dir_colour = float4((diff * dl.colour).xyz,1.0);
+    return float4(dl.strenght * dir_colour.rgb * albedo.rgb,1.0f);
+}
+
+float4 calcPointLight(constant PointLight& pl, float3 fragPosition, float3 normal, float4 albedo){
+    const auto direction = simd::normalize(pl.position - fragPosition);
+    const auto diffuse = max(dot(normal,direction),0.0f);
+    const auto distance = length(pl.position - fragPosition);
+    return float4(pl.strenght * albedo.rgb * (diffuse / distance/distance) * pl.colour.rgb,1.0);
 }
 /*
     The vertex qualifier registers this function in the vertex stage of the Metal API.
@@ -58,15 +79,19 @@ float4 calcDirectionalLight(float3 normal, float4 albedo) {
     table 5.5: Attributes for fragment function input arguments,
     for more info.
 */
-fragment float4 fragmentMain(VertexPayload frag [[stage_in]],
-                            texture2d<float> colorTexture [[ texture(0) ]])
+fragment float4 fragmentMain(VertexPayload frag           [[stage_in]],
+                            texture2d<float> colorTexture [[texture(0)]],
+                            constant AmbientLight& al     [[buffer(1)]],
+                            constant DirectionalLight& dl [[buffer(2)]],
+                            constant PointLight& pl       [[buffer(3)]])
 {
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
-    const auto colorSample = colorTexture.sample(textureSampler, frag.uv);
-    const auto ambient_light = calcAmbientLight(colorSample);
+    const auto colorSample   = colorTexture.sample(textureSampler, frag.uv);
+    const auto ambient_light = calcAmbientLight(al, colorSample);
 
-    const auto dir_light = calcDirectionalLight(frag.normal,colorSample);
+    const auto dir_light   = calcDirectionalLight(dl, frag.normal, colorSample);
+    const auto point_light = calcPointLight(pl, frag.wPosition.xyz, frag.normal, colorSample);
 
     // Sample the texture to obtain a color
-    return (ambient_light + dir_light);
+    return (ambient_light + dir_light + point_light);
 }

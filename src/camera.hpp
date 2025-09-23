@@ -13,6 +13,8 @@ public:
       const Vector3& eye, const Vector3& look_at, const Vector3& up)
       : _fov(fov), _width(width), _height(height), _nearPlane(near_plane), _farPlane{far_plane},
       _eye(eye), _lookAt(look_at), _up(up),
+      _yaw(Vector3::yawFromDirection(look_at-eye)),
+      _pitch(Vector3::pitchFromDirection(look_at-eye)),
       _perspective(Matrix4::perspective(_fov, _width, _height, _nearPlane, _farPlane)),
       _camera(_perspective * Matrix4::lookAt(_eye, _lookAt, _up)) {}
 
@@ -39,7 +41,7 @@ public:
       _yaw += adjust;
       _lookAt =  Vector3::directionFromYawPitch(_yaw,_pitch);
       _camera = _perspective *
-         Matrix4::lookAt(_eye, _eye +_lookAt, _up);
+         Matrix4::lookAt(_eye, _eye + _lookAt, _up);
    }
 
    constexpr auto adjust_pitch(const float adjust) -> void {
@@ -51,8 +53,8 @@ public:
 
 private:
    float _fov{0.0f}, _width{0.0f}, _height{0.0f}, _nearPlane{0.0f}, _farPlane{0.0f};
-   float _yaw{-std::numbers::pi_v<float>/2.}, _pitch{0.0f};
    Vector3 _eye, _lookAt, _up;
+   float _yaw{-std::numbers::pi_v<float>/2.}, _pitch{0.0f};
    Matrix4 _perspective;
    Matrix4 _camera;
 };
