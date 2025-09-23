@@ -20,10 +20,16 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    _unique_materials.push_back(
          AutoRelease<Material *>{new Material{shader_string, _device}, [](auto t) { t->~Material(); }});
 
-   const auto texture_path = std::filesystem::path(ASSETS_DIR) / "container2.png";
-   auto texture_data = resourceLoader.loadBytes(texture_path.string());
+   const auto texture_paths = std::vector<std::filesystem::path>{std::filesystem::path(ASSETS_DIR) / "container2.png",
+      std::filesystem::path(ASSETS_DIR) / "container2_specular.png"};
+   std::vector<std::vector<std::byte>> textures_data;
+   for (auto t: texture_paths) {
+      textures_data.emplace_back(resourceLoader.loadBytes(t.string()));
+   }
+
    _unique_textures.push_back(
-         AutoRelease<Texture *>{new Texture{texture_data, 500, 500, _device}, [](auto t) { t->~Texture(); }});
+         AutoRelease<Texture *>{new Texture{
+            textures_data, 500, 500, _device}, [](auto t) { t->~Texture(); }});
 
    for (const auto &u: _unique_meshes) {
       u->createBuffers(_device);
@@ -59,7 +65,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    };
 }
 
-auto Scene::render(MTL::RenderCommandEncoder *encoder) -> void {
+auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
    for (const auto& e: _entities) {
       encoder->setRenderPipelineState(
          e.getRenderPipelineState());
@@ -78,7 +84,14 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) -> void {
       encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
       encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
 
-      encoder->drawIndexedPrimitives(e.getPrimitive(), e.getIndexCount(), MTL::IndexTypeUInt32,e.getIndexBuffer(),0);
+      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
+
+      encoder->drawIndexedPrimitives(
+         e.getPrimitive(),
+         e.getIndexCount(),
+         MTL::IndexTypeUInt32,
+         e.getIndexBuffer(),
+         0);
    }
 
    encoder->endEncoding();

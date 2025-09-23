@@ -21,7 +21,7 @@ public:
 
    [[nodiscard]] auto loadBytes(const std::string_view path) const -> std::vector<std::byte> {
       const auto data =  loadFile(_root / path, std::ios::in | std::ios::binary);
-      return data | std::views::transform([](auto b) -> std::byte{return static_cast<std::byte>(b);})|std::ranges::to<std::vector>();
+      return data | std::views::transform([](auto b) -> std::byte{return static_cast<std::byte>(b);}) | std::ranges::to<std::vector>();
    }
 
    auto static loadFile(const std::filesystem::path &path, auto open_mode) -> std::string {

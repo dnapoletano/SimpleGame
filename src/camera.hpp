@@ -27,6 +27,10 @@ public:
       return _lookAt.cross(_up).normalize();
    }
 
+   [[nodiscard]] constexpr auto getPosition() const -> Vector3 {
+      return _eye;
+   }
+
    [[nodiscard]] constexpr auto getDirection() const -> Vector3 {
       return _lookAt.normalize();
    }

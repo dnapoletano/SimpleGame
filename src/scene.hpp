@@ -19,7 +19,7 @@ class Scene {
 public:
    Scene(MTL::Device* device, CA::MetalLayer* layer);
    constexpr auto setCamera(Camera* camera) -> void {_camera = camera;}
-   auto render(MTL::RenderCommandEncoder * encoder) -> void;
+   auto render(MTL::RenderCommandEncoder * encoder) const -> void;
    [[nodiscard]] constexpr auto getCamera() const -> Camera* {return _camera;}
    [[nodiscard]] constexpr auto getTexture(const size_t& i) const -> MTL::Texture * {return _unique_textures[i].get()->getTexture();}
 
@@ -30,20 +30,20 @@ private:
    std::vector<AutoRelease<Texture*>>_unique_textures;
 
    [[maybe_unused]] AmbientLight _ambientLight{
-      .strenght = 0.3f,
+      .strength = 0.3f,
       .colour = {1.0f,1.0f,1.0f,1.0f}
    };
 
    [[maybe_unused]] DirectionalLight _directionalLight{
-      .strenght = 0.5,
+      .strength = 0.5,
       .colour = {1.0f,1.0f,1.0f,1.0f},
       .direction = {-1.0f,-1.0f,-1.0f}
    };
 
    PointLight _pointLight{
-      .strenght = 50.0f,
+      .strength = 100.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
-      .position = {7.0f,2.5f,0.0f}
+      .position = {7.0f,3.5f,0.0f}
    };
 
    AutoRelease<MTL::Buffer*> _ambientLightBuffer{};

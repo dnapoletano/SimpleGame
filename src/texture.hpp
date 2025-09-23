@@ -12,7 +12,7 @@ namespace game {
 
 class Texture {
 public:
-   Texture(std::span<std::byte> data, size_t width,
+   Texture(const std::vector<std::vector<std::byte>>& datavec, size_t width,
       size_t height, MTL::Device * device);
 
    [[nodiscard]] auto getTexture() const -> MTL::Texture* {return _texture.get();}

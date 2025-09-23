@@ -5,18 +5,18 @@
 namespace game {
 
 struct AmbientLight {
-   float strenght;
+   float strength;
    simd::float4 colour;
 };
 
 struct DirectionalLight {
-   float strenght;
+   float strength;
    simd::float4 colour;
    simd::float3 direction;
 };
 
 struct PointLight {
-   float strenght;
+   float strength;
    simd::float4 colour;
    simd::float3 position;
 };
