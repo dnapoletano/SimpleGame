@@ -70,7 +70,8 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
       encoder->setCullMode(MTL::CullModeBack);
       encoder->setDepthStencilState(e.getDepthStencilState());
       encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
-      ensure(_camera != nullptr, "Camera not setup for render");
+      ensure(_camera != nullptr,
+         "Camera not setup for render");
       encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
       encoder->setFragmentTexture(e.getTexture(),0);
 

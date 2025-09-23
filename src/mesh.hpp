@@ -12,6 +12,7 @@ namespace game {
 
 struct VertexData {
    simd::float4 position;
+   simd::float3 normal;
    simd::float2 uv;
 };
 
@@ -56,6 +57,18 @@ struct std::formatter<simd::float4> {
 };
 
 template<>
+struct std::formatter<simd::float3> {
+   static constexpr auto parse(const std::format_parse_context &ctx) {
+      return std::cbegin(ctx);
+   }
+
+   static auto format(const simd::float3 &vd, std::format_context &ctx) {
+      return std::format_to(ctx.out(),
+         "({}, {}, {})", vd.x, vd.y, vd.z);
+   }
+};
+
+template<>
 struct std::formatter<simd::float2> {
    static constexpr auto parse(const std::format_parse_context &ctx) {
       return std::cbegin(ctx);
@@ -75,7 +88,7 @@ struct std::formatter<game::VertexData> {
 
    static auto format(const game::VertexData &vd, std::format_context &ctx) {
       return std::format_to(ctx.out(),
-         "position = {}, uv = {}", vd.position, vd.uv);
+         "position = {}, normal = {}, uv = {}", vd.position, vd.normal, vd.uv);
    }
 };
 
