@@ -26,7 +26,7 @@ public:
       : Entity(mesh,material,texture) {
       const auto translation = Matrix4(position);
       const auto rotation = Matrix4(axis,theta);
-      _model = rotation *translation;
+      _model = rotation * translation;
    }
 
    [[nodiscard]] constexpr auto getVertexData() const -> const VertexData*  { return _mesh->getVertexArray().data();}

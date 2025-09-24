@@ -1,5 +1,8 @@
 #include <metal_stdlib>
+#include <simd/simd.h>
+
 using namespace metal;
+
 
 struct VertexData {
    float4 position;
@@ -40,6 +43,8 @@ struct VertexPayload {              //Mesh Vertex Type
     table 5.2: Attributes for vertex function input arguments,
     for more info.
 */
+constant constexpr float M_PI = 3.14;
+
 VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     constant VertexData* vertexData,
     constant float4x4& transform [[buffer(1)]],
@@ -48,7 +53,8 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
     payload.position = proj*(transform*vert.position);
-    payload.wPosition = vert.position;
+    payload.wPosition = transform*vert.position;
+    /// these should be transformed
     payload.normal = vert.normal;
     payload.uv = vert.uv;
     return payload;
@@ -82,6 +88,77 @@ float4 calcPointLight(constant PointLight& pl,
     const auto specular_light = (specular.r * spec) * albedo * 50.0f;
     return float4(pl.strength * albedo.rgb * ((diffuse + specular_light.rgb) / distance / distance) * pl.colour.rgb, 1.0);
 }
+
+
+float3 fresnelSchlick(float cosTheta, float3 F0)
+{
+    // Schlick's approximation of Fresnel
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float distributionGGX(float3 N, float3 H, float roughness)
+{
+    float a      = roughness * roughness;
+    float a2     = a * a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    return a2 / (M_PI * denom * denom);
+}
+
+float geometrySmith(float3 N, float3 V, float3 L, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;   // from UE4
+
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+
+    float ggxV = NdotV / (NdotV * (1.0 - k) + k);
+    float ggxL = NdotL / (NdotL * (1.0 - k) + k);
+
+    return ggxV * ggxL;
+}
+
+float3 calcSpecularGGX(float3 lightPosition,
+                       float3 cameraPosition,
+                       float3 fragPosition,
+                       float3 fragNormal,
+                       float3 lightColor, float3 albedo,
+                       float roughness, float metalness)
+{
+    float3 N = normalize(fragNormal);
+    float3 V = normalize(cameraPosition - fragPosition);
+    float3 L = normalize(lightPosition - fragPosition);
+
+    float3 H = normalize(V + L);   // half vector
+
+    // Fresnel term: base reflectivity
+    float3 F0 = mix(float3(0.04), albedo, metalness);
+    float3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    float D = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+
+    float3 numerator   = D * F * G;
+    float denominator  = 4.0 * NdotV * NdotL + 0.001;
+    float3 specular    = numerator / denominator;
+
+    // energy conservation: diffuse gets reduced by Fresnel
+    float3 kS = F;
+    float3 kD = (1.0 - kS) * (1.0 - metalness);
+
+    float3 diffuse = kD * albedo / M_PI;
+
+    float attenuation = 1.0f / (dot(lightPosition - fragPosition,lightPosition - fragPosition)) ;
+
+    return (diffuse + specular) * lightColor * NdotL * attenuation;
+}
+
 /*
     The vertex qualifier registers this function in the vertex stage of the Metal API.
 
@@ -103,9 +180,15 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
 
     const auto ambient_light    = calcAmbientLight(al, colorSample);
 
-    const auto dir_light   = calcDirectionalLight(dl, frag.normal, colorSample);
-    const auto point_light = calcPointLight(pl, cameraPosition , frag.wPosition.xyz, frag.normal, colorSample, specularSample);
-
+    const auto point_light = calcSpecularGGX(
+                                   pl.position,
+                                   cameraPosition,
+                                   frag.wPosition.xyz,
+                                   frag.normal,
+                                   pl.colour.rgb * pl.strength, // light color/intensity
+                                   colorSample.rgb,             // albedo from texture
+                                   (1.0f - specularSample.r)*0.5f,
+                                   specularSample.r);
     // Sample the texture to obtain a color
-    return point_light;//(ambient_light + dir_light + point_light);
+    return float4(point_light,1.0f);//(ambient_light + dir_light + point_light);
 }

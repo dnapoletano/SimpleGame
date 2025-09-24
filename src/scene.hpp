@@ -41,9 +41,9 @@ private:
    };
 
    PointLight _pointLight{
-      .strength = 100.0f,
+      .strength = 50.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
-      .position = {7.0f,3.5f,0.0f}
+      .position = {0.0f,3.0f,0.0f}
    };
 
    AutoRelease<MTL::Buffer*> _ambientLightBuffer{};

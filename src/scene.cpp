@@ -39,11 +39,11 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    }
 
 
-   for (auto i = 0u; i < 10u; ++i) {
-      for (auto j = 0u; j < 10u; ++j) {
+   for (auto i = 0u; i < 20u; ++i) {
+      for (auto j = 0u; j < 20u; ++j) {
          _entities.emplace_back(_unique_meshes[0].get(),
             _unique_materials[0].get(), _unique_textures[0].get(),
-            Vector3{static_cast<float>(i) * 1.5f-5.f, 0.0f, static_cast<float>(j) * 1.5f-5.0f});
+            Vector3{static_cast<float>(i) * 1.5f-10.f, 0.0f, static_cast<float>(j) * 1.5f-10.0f});
       }
    }
 
