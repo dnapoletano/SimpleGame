@@ -1,4 +1,5 @@
 FetchContent_MakeAvailable(stb)
+FetchContent_MakeAvailable(assimp)
 
 add_executable(game_tutorial
         main.cpp
@@ -11,7 +12,9 @@ add_executable(game_tutorial
         scene.cpp
         texture.cpp
         resource_reader.hpp
-        light.hpp)
+        light.hpp
+        mesh_factory.hpp
+        mesh_factory.cpp)
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 target_compile_definitions(game_tutorial PUBLIC
@@ -19,7 +22,7 @@ target_compile_definitions(game_tutorial PUBLIC
         ASSETS_DIR="assets"
         SHADERS_DIR="shaders")
 
-target_compile_options(game_tutorial PUBLIC -Wall -Wextra -Werror -g)
+target_compile_options(game_tutorial PUBLIC -Wall -Wextra -Werror -g -fexperimental-library)
 target_include_directories(game_tutorial PUBLIC
         /opt/homebrew/include
         ${PROJECT_SOURCE_DIR}/metal-cpp
@@ -28,4 +31,4 @@ target_include_directories(game_tutorial PUBLIC
 
 target_link_options(game_tutorial PUBLIC "SHELL:-framework Foundation -framework Metal -framework MetalKit")
 target_link_directories(game_tutorial PUBLIC /opt/homebrew/lib)
-target_link_libraries(game_tutorial PUBLIC SDL2)
+target_link_libraries(game_tutorial PUBLIC SDL2 assimp::assimp)

@@ -16,28 +16,33 @@ struct VertexData {
    simd::float2 uv;
 };
 
+struct MeshData {
+   std::vector<VertexData> vertices;
+   std::vector<std::uint32_t> indexes;
+};
+
 inline auto operator==(const VertexData& v1, const VertexData& v2) -> bool {
    return v1.position.x == v2.position.x and v1.position.y == v2.position.y and v1.position.z == v2.position.z;
 }
 
 class Mesh {
 public:
-   Mesh();
-   ~Mesh();
+   Mesh(MeshData * md);
+   ~Mesh() = default;
 
-   [[nodiscard]] auto getVertexArray() const -> const std::vector<VertexData>& {return _vertices;}
-   [[nodiscard]] auto accessVertexArray() -> std::vector<VertexData>* {return &_vertices;}
-   [[nodiscard]] constexpr auto size() const -> size_t {return _vertices.size()*sizeof(VertexData);}
-   [[nodiscard]] constexpr auto n_verts() const -> size_t {return _vertices.size();}
-   auto createBuffers(MTL::Device* device) -> void;
-   [[nodiscard]] constexpr auto getVertexBuffer() const -> MTL::Buffer * {return _mesh_buffer.get();}
-   [[nodiscard]] constexpr auto getIndexBuffer() const -> MTL::Buffer * {return _index_buffer.get();}
-   [[nodiscard]] constexpr auto getIndexCount() const -> size_t {return _indexes.size();}
+   [[nodiscard]] auto getVertexArray() const             -> const std::span<VertexData>& {return _vertices;}
+   [[nodiscard]] auto accessVertexArray()                -> std::span<VertexData>* {return &_vertices;}
+   [[nodiscard]] constexpr auto size() const             -> size_t {return _vertices.size()*sizeof(VertexData);}
+   [[nodiscard]] constexpr auto n_verts() const          -> size_t {return _vertices.size();}
+   auto createBuffers(MTL::Device* device)               -> void;
+   [[nodiscard]] constexpr auto getVertexBuffer() const  -> MTL::Buffer * {return _mesh_buffer.get();}
+   [[nodiscard]] constexpr auto getIndexBuffer() const   -> MTL::Buffer * {return _index_buffer.get();}
+   [[nodiscard]] constexpr auto getIndexCount() const    -> size_t {return _indexes.size();}
    [[nodiscard]] constexpr auto getPrimitiveType() const -> MTL::PrimitiveType {return _primitiveType;}
 
 private:
-   std::vector<VertexData> _vertices;
-   std::vector<std::uint32_t> _indexes;
+   std::span<VertexData> _vertices;
+   std::span<std::uint32_t> _indexes;
    AutoRelease<MTL::Buffer*> _mesh_buffer{};
    AutoRelease<MTL::Buffer*> _index_buffer{};
    MTL::PrimitiveType _primitiveType {MTL::PrimitiveTypeTriangle};

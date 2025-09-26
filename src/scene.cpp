@@ -1,6 +1,7 @@
 #include "scene.hpp"
 #include <filesystem>
 
+#include "mesh_factory.hpp"
 #include "resource_reader.hpp"
 
 namespace game {
@@ -12,8 +13,15 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    _unique_meshes.reserve(1);
    _unique_materials.reserve(1);
    _unique_textures.reserve(1);
+
+
    /// Can probably abstract this too
-   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{}, [](auto t) { t->~Mesh(); }});
+   MeshFactory mf{};
+   //_unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("cube",{})}, [](auto t) { t->~Mesh(); }});
+
+   auto objdata = resourceLoader.loadBytes( (std::filesystem::path(ASSETS_DIR) / "CasaDefinitiva.obj").string());
+   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("Kitchen.001",objdata)}, [](auto t) { t->~Mesh(); }});
+   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("House",objdata)}, [](auto t) { t->~Mesh(); }});
 
    const auto shader_path = std::filesystem::path(SHADERS_DIR) / "textured.metal";
    const auto shader_string = resourceLoader.loadString(shader_path.string());
@@ -23,7 +31,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    const auto texture_paths = std::vector<std::filesystem::path>{std::filesystem::path(ASSETS_DIR) / "container2.png",
       std::filesystem::path(ASSETS_DIR) / "container2_specular.png"};
    std::vector<std::vector<std::byte>> textures_data;
-   for (auto t: texture_paths) {
+   for (const auto& t: texture_paths) {
       textures_data.emplace_back(resourceLoader.loadBytes(t.string()));
    }
 
@@ -38,14 +46,16 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       m->setUpRenderPipeLineState(_layer);
    }
 
-
-   for (auto i = 0u; i < 20u; ++i) {
-      for (auto j = 0u; j < 20u; ++j) {
-         _entities.emplace_back(_unique_meshes[0].get(),
-            _unique_materials[0].get(), _unique_textures[0].get(),
-            Vector3{static_cast<float>(i) * 1.5f-10.f, 0.0f, static_cast<float>(j) * 1.5f-10.0f});
-      }
-   }
+   _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get());
+   _entities.emplace_back(_unique_meshes[1].get(),_unique_materials[0].get(), _unique_textures[0].get());
+   //
+   // for (auto i = 0u; i < 20u; ++i) {
+   //    for (auto j = 0u; j < 20u; ++j) {
+   //       _entities.emplace_back(_unique_meshes[0].get(),
+   //          _unique_materials[0].get(), _unique_textures[0].get(),
+   //          Vector3{static_cast<float>(i) * 5.0f-10.f, 0.0f, static_cast<float>(j) * 5.0f-10.0f});
+   //    }
+   // }
 
 
    /// create Light Buffers

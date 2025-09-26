@@ -4,60 +4,9 @@
 
 namespace game {
 
-Mesh::Mesh()
+Mesh::Mesh(MeshData * md)
+   : _vertices{md->vertices}, _indexes{md->indexes}
 {
-   // _vertices.reserve(8);
-    _indexes.reserve(36);
-   // Front face (z = +0.5)
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, 0.5f, 1.0f}, {0.0f,0.0f,-1.0f}, {0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, 0.5f, 1.0f}, {0.0f,0.0f,-1.0f}, {1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, 0.5f, 1.0f}, {0.0f,0.0f,-1.0f}, {1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, 0.5f, 1.0f}, {0.0f,0.0f,-1.0f}, {0.0f, 1.0f}});
-
-   // Back face (z = -0.5)
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, -0.5f, 1.0f}, {0.0f,0.0f,1.0f},{0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, -0.5f, 1.0f},{0.0f,0.0f,1.0f}, {1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, -0.5f, 1.0f}, {0.0f,0.0f,1.0f},{1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, -0.5f, 1.0f}, {0.0f,0.0f,1.0f},{0.0f, 1.0f}});
-
-   // Left face (x = -0.5)
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, -0.5f, 1.0f}, {-1.0f,0.0f,0.0f}, {0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, 0.5f, 1.0f}, {-1.0f,0.0f,0.0f}, {1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, 0.5f, 1.0f}, {-1.0f,0.0f,0.0f}, {1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, -0.5f, 1.0f}, {-1.0f,0.0f,0.0f}, {0.0f, 1.0f}});
-
-   // Right face (x = +0.5)
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, 0.5f, 1.0f}, {1.0f,0.0f,0.0f},{0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, -0.5f, 1.0f},{1.0f,0.0f,0.0f}, {1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, -0.5f, 1.0f}, {1.0f,0.0f,0.0f},{1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, 0.5f, 1.0f}, {1.0f,0.0f,0.0f},{0.0f, 1.0f}});
-
-   // Top face (y = +0.5)
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, 0.5f, 1.0f}, {0.0f,1.0f,0.0f},{0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, 0.5f, 1.0f}, {0.0f,1.0f,0.0f},{1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, 0.5f, -0.5f, 1.0f}, {0.0f,1.0f,0.0f},{1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, 0.5f, -0.5f, 1.0f},{0.0f,1.0f,0.0f}, {0.0f, 1.0f}});
-
-   // Bottom face (y = -0.5)
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, -0.5f, 1.0f}, {0.0f,-1.0f,0.0f},{0.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, -0.5f, 1.0f}, {0.0f,-1.0f,0.0f},{1.0f, 0.0f}});
-   _vertices.emplace_back(VertexData{{0.5f, -0.5f, 0.5f, 1.0f}, {0.0f,-1.0f,0.0f},{1.0f, 1.0f}});
-   _vertices.emplace_back(VertexData{{-0.5f, -0.5f, 0.5f, 1.0f}, {0.0f,-1.0f,0.0f},{0.0f, 1.0f}});
-
-   _indexes = {
-         0,  1,  2,  2,  3,  0, // Front
-         4,  5,  6,  6,  7,  4, // Back
-         8,  9,  10, 10, 11, 8, // Left
-         12, 13, 14, 14, 15, 12, // Right
-         16, 17, 18, 18, 19, 16, // Top
-         20, 21, 22, 22, 23, 20 // Bottom
-   };
-
-
-}
-
-Mesh::~Mesh() {
-   _vertices.clear();
 }
 
 auto Mesh::createBuffers(MTL::Device* const device) -> void {

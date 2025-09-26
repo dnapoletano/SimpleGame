@@ -1,6 +1,7 @@
 #ifndef GAME_TUTORIAL_LIGHT_HPP
 #define GAME_TUTORIAL_LIGHT_HPP
 
+#include <simd/simd.h>
 
 namespace game {
 

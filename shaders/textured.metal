@@ -179,6 +179,7 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
     const auto specularSample   = colorTexture.sample(textureSampler, frag.uv, 1);
 
     const auto ambient_light    = calcAmbientLight(al, colorSample);
+    const auto dir_light        = calcDirectionalLight(dl, frag.normal, colorSample);
 
     const auto point_light = calcSpecularGGX(
                                    pl.position,
@@ -190,5 +191,5 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
                                    (1.0f - specularSample.r)*0.5f,
                                    specularSample.r);
     // Sample the texture to obtain a color
-    return float4(point_light,1.0f);//(ambient_light + dir_light + point_light);
+    return float4((ambient_light.rgb + dir_light.rgb + point_light),1.0f);
 }

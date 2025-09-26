@@ -29,13 +29,13 @@ private:
    std::vector<AutoRelease<Material*>>_unique_materials;
    std::vector<AutoRelease<Texture*>>_unique_textures;
 
-   [[maybe_unused]] AmbientLight _ambientLight{
-      .strength = 0.3f,
+   AmbientLight _ambientLight{
+      .strength = 1.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f}
    };
 
-   [[maybe_unused]] DirectionalLight _directionalLight{
-      .strength = 0.5,
+   DirectionalLight _directionalLight{
+      .strength = 1.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
       .direction = {-1.0f,-1.0f,-1.0f}
    };
