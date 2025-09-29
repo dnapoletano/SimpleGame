@@ -30,12 +30,12 @@ private:
    std::vector<AutoRelease<Texture*>>_unique_textures;
 
    AmbientLight _ambientLight{
-      .strength = 1.0f,
+      .strength = 0.3f,
       .colour = {1.0f,1.0f,1.0f,1.0f}
    };
 
    DirectionalLight _directionalLight{
-      .strength = 1.0f,
+      .strength = 0.3f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
       .direction = {-1.0f,-1.0f,-1.0f}
    };
@@ -43,7 +43,7 @@ private:
    PointLight _pointLight{
       .strength = 50.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
-      .position = {0.0f,3.0f,0.0f}
+      .position = {2.0f,5.0f,0.0f}
    };
 
    AutoRelease<MTL::Buffer*> _ambientLightBuffer{};

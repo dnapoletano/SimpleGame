@@ -16,7 +16,7 @@
 
 auto main() -> int {
    try {
-      game::Window win(600u,400u);
+      game::Window win(1200u,800u);
       game::Scene scene{win.getDevice(),win.getLayer()};
 
 

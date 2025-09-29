@@ -13,6 +13,8 @@ namespace game {
 struct VertexData {
    simd::float4 position;
    simd::float3 normal;
+   simd::float3 tangent;
+   simd::float3 bitangent;
    simd::float2 uv;
 };
 

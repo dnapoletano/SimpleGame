@@ -7,6 +7,8 @@ using namespace metal;
 struct VertexData {
    float4 position;
    float3 normal;
+   float3 tangent;
+   float3 bitangent;
    float2 uv;
 };
 
@@ -30,6 +32,8 @@ struct PointLight {
 struct VertexPayload {              //Mesh Vertex Type
     float4 position [[position]];   //Qualified attribute
     float3 normal;
+    float3 tangent;
+    float3 bitangent;
     float2 uv;                      // UV coordinates/*
     float4 wPosition;
 };
@@ -56,6 +60,8 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     payload.wPosition = transform*vert.position;
     /// these should be transformed
     payload.normal = vert.normal;
+    payload.tangent = vert.tangent;
+    payload.bitangent = vert.bitangent;
     payload.uv = vert.uv;
     return payload;
 }
@@ -177,18 +183,24 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
 
     const auto colorSample      = colorTexture.sample(textureSampler, frag.uv, 0);
     const auto specularSample   = colorTexture.sample(textureSampler, frag.uv, 1);
+    const auto roughnessSample   = colorTexture.sample(textureSampler, frag.uv, 2);
 
     const auto ambient_light    = calcAmbientLight(al, colorSample);
-    const auto dir_light        = calcDirectionalLight(dl, frag.normal, colorSample);
+
+    const auto normalMap        = normalize(
+        colorTexture.sample(textureSampler, frag.uv, 3).rgb * 2.0f - 1.0f
+    );
+
+    const auto dir_light        = calcDirectionalLight(dl, normalMap, colorSample);
 
     const auto point_light = calcSpecularGGX(
                                    pl.position,
                                    cameraPosition,
                                    frag.wPosition.xyz,
-                                   frag.normal,
+                                   normalMap,
                                    pl.colour.rgb * pl.strength, // light color/intensity
                                    colorSample.rgb,             // albedo from texture
-                                   (1.0f - specularSample.r)*0.5f,
+                                   roughnessSample.r,
                                    specularSample.r);
     // Sample the texture to obtain a color
     return float4((ambient_light.rgb + dir_light.rgb + point_light),1.0f);
