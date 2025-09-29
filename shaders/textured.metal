@@ -179,6 +179,9 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
                             constant PointLight& pl             [[buffer(3)]],
                             constant float3& cameraPosition     [[buffer(4)]])
 {
+
+    const auto TBN = float3x3(frag.tangent, frag.bitangent, frag.normal);
+
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
     const auto colorSample      = colorTexture.sample(textureSampler, frag.uv, 0);
@@ -191,13 +194,14 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
         colorTexture.sample(textureSampler, frag.uv, 3).rgb * 2.0f - 1.0f
     );
 
-    const auto dir_light        = calcDirectionalLight(dl, normalMap, colorSample);
+    const auto normal           = normalize(TBN * normalMap);
+    const auto dir_light        = calcDirectionalLight(dl, normal, colorSample);
 
     const auto point_light = calcSpecularGGX(
                                    pl.position,
                                    cameraPosition,
                                    frag.wPosition.xyz,
-                                   normalMap,
+                                   normal,
                                    pl.colour.rgb * pl.strength, // light color/intensity
                                    colorSample.rgb,             // albedo from texture
                                    roughnessSample.r,
