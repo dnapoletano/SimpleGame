@@ -1,0 +1,2 @@
+-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/MetalKit.framework/Header
+-std=c++14
