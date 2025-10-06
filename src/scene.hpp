@@ -5,6 +5,7 @@
 #include <QuartzCore/QuartzCore.hpp>
 
 #include "camera.hpp"
+#include "cube_map.hpp"
 #include "entity.hpp"
 #include "light.hpp"
 
@@ -28,6 +29,8 @@ private:
    std::vector<AutoRelease<Mesh*>> _unique_meshes;
    std::vector<AutoRelease<Material*>>_unique_materials;
    std::vector<AutoRelease<Texture*>>_unique_textures;
+
+   AutoRelease<CubeMap*> _cubemap{};
 
    AmbientLight _ambientLight{
       .strength = 0.3f,

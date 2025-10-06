@@ -20,8 +20,10 @@ auto MeshFactory::getMeshData(const std::string_view mesh_name, [[maybe_unused]]
    } else if (mesh_name == "sphere") {
       const auto [fst, snd] = _loadedMeshes.emplace("sphere", _sphere(1.0f));
       return &fst->second;
+   } else if (mesh_name == "cube_map") {
+      const auto [fst, snd] = _loadedMeshes.emplace("cube_map", _cubeMap());
+      return &fst->second;
    }
-
 
 
    auto importer = ::Assimp::Importer{};
@@ -71,17 +73,17 @@ auto MeshFactory::getMeshData(const std::string_view mesh_name, [[maybe_unused]]
    return nullptr;
 }
 
-auto MeshFactory::_cube([[maybe_unused]] const float& length)   -> MeshData {
+auto MeshFactory::_cube(const float& length = 1.0f)   -> MeshData {
 
-   constexpr simd::float4 positions[] = {
-         {-0.5f, -0.5f, 0.5f, 1.0f}, {0.5f, -0.5f, 0.5f, 1.0f},  {0.5f, 0.5f, 0.5f, 1.0f},
-         {-0.5f, 0.5f, 0.5f, 1.0f},  {0.5f, -0.5f, -0.5f, 1.0f}, {-0.5f, -0.5f, -0.5f, 1.0f},
-         {-0.5f, 0.5f, -0.5f, 1.0f}, {0.5f, 0.5f, -0.5f, 1.0f},  {-0.5f, -0.5f, -0.5f, 1.0f},
-         {-0.5f, -0.5f, 0.5f, 1.0f}, {-0.5f, 0.5f, 0.5f, 1.0f},  {-0.5f, 0.5f, -0.5f, 1.0f},
-         {0.5f, -0.5f, 0.5f, 1.0f},  {0.5f, -0.5f, -0.5f, 1.0f}, {0.5f, 0.5f, -0.5f, 1.0f},
-         {0.5f, 0.5f, 0.5f, 1.0f},   {-0.5f, 0.5f, 0.5f, 1.0f},  {0.5f, 0.5f, 0.5f, 1.0f},
-         {0.5f, 0.5f, -0.5f, 1.0f},  {-0.5f, 0.5f, -0.5f, 1.0f}, {-0.5f, -0.5f, -0.5f, 1.0f},
-         {0.5f, -0.5f, -0.5f, 1.0f}, {0.5f, -0.5f, 0.5f, 1.0f},  {-0.5f, -0.5f, 0.5f, 1.0f}};
+   const simd::float4 positions[] = {
+         {-length/2.0f, -length/2.0f, length/2.0f, 1.0f}, {length/2.0f, -length/2.0f, length/2.0f, 1.0f},  {length/2.0f, length/2.0f, length/2.0f, 1.0f},
+         {-length/2.0f, length/2.0f, length/2.0f, 1.0f},  {length/2.0f, -length/2.0f, -length/2.0f, 1.0f}, {-length/2.0f, -length/2.0f, -length/2.0f, 1.0f},
+         {-length/2.0f, length/2.0f, -length/2.0f, 1.0f}, {length/2.0f, length/2.0f, -length/2.0f, 1.0f},  {-length/2.0f, -length/2.0f, -length/2.0f, 1.0f},
+         {-length/2.0f, -length/2.0f, length/2.0f, 1.0f}, {-length/2.0f, length/2.0f, length/2.0f, 1.0f},  {-length/2.0f, length/2.0f, -length/2.0f, 1.0f},
+         {length/2.0f, -length/2.0f, length/2.0f, 1.0f},  {length/2.0f, -length/2.0f, -length/2.0f, 1.0f}, {length/2.0f, length/2.0f, -length/2.0f, 1.0f},
+         {length/2.0f, length/2.0f, length/2.0f, 1.0f},   {-length/2.0f, length/2.0f, length/2.0f, 1.0f},  {length/2.0f, length/2.0f, length/2.0f, 1.0f},
+         {length/2.0f, length/2.0f, -length/2.0f, 1.0f},  {-length/2.0f, length/2.0f, -length/2.0f, 1.0f}, {-length/2.0f, -length/2.0f, -length/2.0f, 1.0f},
+         {length/2.0f, -length/2.0f, -length/2.0f, 1.0f}, {length/2.0f, -length/2.0f, length/2.0f, 1.0f},  {-length/2.0f, -length/2.0f, length/2.0f, 1.0f}};
 
 
    constexpr simd::float3 normals[] = {
@@ -108,6 +110,66 @@ auto MeshFactory::_cube([[maybe_unused]] const float& length)   -> MeshData {
    };
    return MeshData{createModelData(positions,normals,normals,normals,uvs),std::move(indexes)};
 }
+
+auto MeshFactory::_cubeMap() -> MeshData {
+   constexpr simd::float4 positions[] = {
+      {-1.0f,-1.0f,1.0f,1.0f},
+      {1.0f,-1.0f,1.0f,1.0f},
+      {1.0f,1.0f,1.0f,1.0f},
+      {-1.0f,1.0f,1.0f,1.0f},
+      {-1.0f,-1.0f,-1.0f,1.0f},
+      {1.0f,-1.0f,-1.0f,1.0f},
+      {1.0f,1.0f,-1.0f,1.0f},
+      {-1.0f,1.0f,-1.0f,1.0f},
+   };
+   constexpr simd::float3 normals[] = {
+         // Front
+         { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1},
+         // Back
+         { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1},
+         // Right
+         { -1, 0,  0}, { -1, 0,  0}, { -1, 0,  0}, { -1, 0,  0},
+         // Left
+         { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
+         // Top
+         { 0, -1, 0}, { 0, -1, 0}, { 0, -1, 0}, { 0, -1, 0},
+         // Bottom
+         { 0,  1, 0}, { 0,  1, 0}, { 0,  1, 0}, { 0,  1, 0}
+   };
+
+   constexpr simd::float2 uvs[] = {
+      // Front
+      {0, 0}, {1, 0}, {1, 1}, {0, 1},
+      // Back
+      {1, 0}, {0, 0}, {0, 1}, {1, 1},
+      // Right
+      {0, 0}, {1, 0}, {1, 1}, {0, 1},
+      // Left
+      {1, 0}, {0, 0}, {0, 1}, {1, 1},
+      // Top
+      {0, 0}, {1, 0}, {1, 1}, {0, 1},
+      // Bottom
+      {0, 1}, {1, 1}, {1, 0}, {0, 0},
+  };
+
+   auto indexes = std::vector<std::uint32_t>{
+      // Front face
+      0, 2, 1,  0, 3, 2,
+      // Right face
+      1, 6, 5,  1, 2, 6,
+      // Back face
+      5, 7, 4,  5, 6, 7,
+      // Left face
+      4, 3, 0,  4, 7, 3,
+      // Top face
+      3, 6, 2,  3, 7, 6,
+      // Bottom face
+      4, 1, 5,  4, 0, 1
+   };
+   return MeshData{createModelData(positions,normals,normals,normals,uvs),std::move(indexes)};
+}
+
+
 
 auto MeshFactory::_sphere([[maybe_unused]]  const float& radius) -> MeshData {
    std::vector<simd::float4> position;

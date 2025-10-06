@@ -99,30 +99,30 @@ float4 calcPointLight(constant PointLight& pl,
 float3 fresnelSchlick(float cosTheta, float3 F0)
 {
     // Schlick's approximation of Fresnel
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
 float distributionGGX(float3 N, float3 H, float roughness)
 {
     float a      = roughness * roughness;
     float a2     = a * a;
-    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH  = max(dot(N, H), 0.0f);
     float NdotH2 = NdotH * NdotH;
 
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
     return a2 / (M_PI * denom * denom);
 }
 
 float geometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;   // from UE4
+    float r = (roughness + 1.0f);
+    float k = (r * r) / 8.0f;   // from UE4
 
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0f);
+    float NdotL = max(dot(N, L), 0.0f);
 
-    float ggxV = NdotV / (NdotV * (1.0 - k) + k);
-    float ggxL = NdotL / (NdotL * (1.0 - k) + k);
+    float ggxV = NdotV / (NdotV * (1.0f - k) + k);
+    float ggxL = NdotL / (NdotL * (1.0f - k) + k);
 
     return ggxV * ggxL;
 }
@@ -181,7 +181,6 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
 {
 
     const auto TBN = float3x3(frag.tangent, frag.bitangent, frag.normal);
-
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
     const auto colorSample      = colorTexture.sample(textureSampler, frag.uv, 0);

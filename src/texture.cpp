@@ -1,12 +1,11 @@
 #include "texture.hpp"
-
 #include "error.hpp"
+#include "utils.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include <memory>
-#include <simd/simd.h>
 
 namespace game {
 
@@ -23,7 +22,7 @@ Texture::Texture(const std::vector<std::vector<std::byte>>& datavec,
       MTL::TextureDescriptor::alloc()->init(),
       [](auto t) {t->release();}
    };
-   const auto mipLevels = std::floor(std::log2(std::max(width,height)))+1;
+   const auto mipLevels = static_cast<size_t>(std::floor(std::log2(std::max(width,height)))+1);
    textureDescriptor->setArrayLength(datavec.size());
    textureDescriptor->setWidth(w);
    textureDescriptor->setHeight(h);
@@ -48,8 +47,7 @@ Texture::Texture(const std::vector<std::vector<std::byte>>& datavec,
       [](auto t) {t->release();}
    };
 
-   for (auto i = 0u; i < datavec.size(); ++i) {
-      const auto& data = datavec[i];
+   for (const auto &[index, data]: ::enumerate(datavec)) {
       const auto raw_data = std::unique_ptr<::stbi_uc,void (*)(void*)>(
          ::stbi_load_from_memory(
             reinterpret_cast<const ::stbi_uc*> (data.data()),
@@ -62,7 +60,7 @@ Texture::Texture(const std::vector<std::vector<std::byte>>& datavec,
 
       const auto region = MTL::Region{0, 0, 0, width, height, 1};
       const NS::UInteger bytesPerRow = 4 * width;
-      _texture->replaceRegion(region, 0, i, raw_data.get(), bytesPerRow,0);
+      _texture->replaceRegion(region, 0, index, raw_data.get(), bytesPerRow,0);
       const AutoRelease<MTL::BlitCommandEncoder*> blitEncoder = {
          commandBuffer->blitCommandEncoder(),
          [](auto t) {t->release();}

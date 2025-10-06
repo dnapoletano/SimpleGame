@@ -19,6 +19,10 @@ auto Renderer::render(const Camera& camera,
    cd->setLoadAction(MTL::LoadActionClear);
    cd->setClearColor(clear_color);
    cd->setStoreAction(MTL::StoreActionStore);
+   /// TODO: replace these
+   renderPassDescriptor->depthAttachment()->setLoadAction(MTL::LoadActionClear);
+   renderPassDescriptor->depthAttachment()->setStoreAction(MTL::StoreActionDontCare);
+   renderPassDescriptor->depthAttachment()->setClearDepth(1.0);
 
    const auto encoder = buffer->renderCommandEncoder(renderPassDescriptor);
    scene.setCamera(const_cast<Camera*>(&camera));

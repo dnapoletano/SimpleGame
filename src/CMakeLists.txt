@@ -14,13 +14,17 @@ add_executable(game_tutorial
         resource_reader.hpp
         light.hpp
         mesh_factory.hpp
-        mesh_factory.cpp)
+        mesh_factory.cpp
+        cube_map.hpp
+        cube_map.cpp
+        utils.hpp)
 
 target_compile_features(game_tutorial PUBLIC cxx_std_23)
 target_compile_definitions(game_tutorial PUBLIC
         ROOT_DIR="${PROJECT_SOURCE_DIR}"
         ASSETS_DIR="assets"
-        SHADERS_DIR="shaders")
+        SHADERS_DIR="shaders"
+)
 
 target_compile_options(game_tutorial PUBLIC -Wall -Wextra -Werror -g -fexperimental-library)
 target_include_directories(game_tutorial PUBLIC

@@ -21,6 +21,8 @@ public:
    [[nodiscard]] constexpr auto getData() const -> const simd::float4x4 * { return &(_camera.data());}
    [[nodiscard]] constexpr auto size() const -> size_t { return sizeof(_camera.data());}
    [[nodiscard]] constexpr auto getCamera() const -> const Matrix4& {return _camera;}
+   [[nodiscard]] constexpr auto getLookAt() const -> Matrix4 {return Matrix4::lookAt(_eye, _lookAt, _up);}
+   [[nodiscard]] constexpr auto getProj() const -> Matrix4 {return Matrix4::perspective(_fov, _width, _height, _nearPlane, _farPlane);}
 
 
    [[nodiscard]] constexpr auto getRight() const -> Vector3 {

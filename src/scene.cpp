@@ -1,6 +1,7 @@
 #include "scene.hpp"
 #include <filesystem>
 
+#include "cube_map.hpp"
 #include "mesh_factory.hpp"
 #include "resource_reader.hpp"
 
@@ -19,8 +20,8 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    MeshFactory mf{};
    //_unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("cube",{})}, [](auto t) { t->~Mesh(); }});
 
-   auto objdata = resourceLoader.loadBytes( (std::filesystem::path(ASSETS_DIR) / "Sphere.obj").string());
-   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("bSphere",objdata)}, [](auto t) { t->~Mesh(); }});
+   auto objdata = resourceLoader.loadBytes( (std::filesystem::path(ASSETS_DIR) / "Suzanne.obj").string());
+   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("Suzanne",objdata)}, [](auto t) { t->~Mesh(); }});
 
    const auto shader_path = std::filesystem::path(SHADERS_DIR) / "textured.metal";
    const auto shader_string = resourceLoader.loadString(shader_path.string());
@@ -50,7 +51,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       m->setUpRenderPipeLineState(_layer);
    }
 
-   _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get());
+   _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get(),Vector3{100.0f,0.0f,0.0f});
 
    // for (auto i = 0u; i < 20u; ++i) {
    //    for (auto j = 0u; j < 20u; ++j) {
@@ -76,38 +77,86 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       _device->newBuffer(&_pointLight,sizeof(_pointLight),MTL::StorageModeShared),
       [](auto t) { t->release();}
    };
+   const auto cubemapShaderPath = (std::filesystem::path(SHADERS_DIR) / "skybox.metal").string();
+
+   _cubemap = AutoRelease<CubeMap*>{
+            new CubeMap{
+               {
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "right.jpg").string()),
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "left.jpg").string()),
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "top.jpg").string()),
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "bottom.jpg").string()),
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "front.jpg").string()),
+                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "back.jpg").string())
+               },
+               resourceLoader.loadString(cubemapShaderPath),
+               2048u,2048u, _device, &mf
+            },
+         [](auto t){t->~CubeMap();}
+   };
+   _cubemap->setUpRenderPipeLineState(_layer);
+   _cubemap->createBuffers(_device);
+
+
 }
 
 auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
-   for (const auto& e: _entities) {
-      encoder->setRenderPipelineState(
-         e.getRenderPipelineState());
-      encoder->setVertexBuffer(e.getVertexBuffer(),0,0);
-      encoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
-      encoder->setCullMode(MTL::CullModeBack);
-      encoder->setDepthStencilState(e.getDepthStencilState());
-      encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
-      ensure(_camera != nullptr,
-         "Camera not setup for render");
-      encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
-      encoder->setFragmentTexture(e.getTexture(),0);
+   // for (const auto& e: _entities) {
+   //    encoder->setRenderPipelineState(
+   //       e.getRenderPipelineState());
+   //    encoder->setVertexBuffer(e.getVertexBuffer(),0,0);
+   //    encoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
+   //    encoder->setCullMode(MTL::CullModeBack);
+   //    encoder->setDepthStencilState(e.getDepthStencilState());
+   //    encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
+   //    ensure(_camera != nullptr,
+   //       "Camera not setup for render");
+   //    encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
+   //    encoder->setFragmentTexture(e.getTexture(),0);
+   //
+   //    /// could compress this into a unique buffer with offsets?
+   //    encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
+   //    encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
+   //    encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
+   //
+   //    encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
+   //
+   //    encoder->drawIndexedPrimitives(
+   //       e.getPrimitive(),
+   //       e.getIndexCount(),
+   //       MTL::IndexTypeUInt32,
+   //       e.getIndexBuffer(),
+   //       0);
+   // }
 
-      /// could compress this into a unique buffer with offsets?
-      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
-      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
-      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
+   // //encoder->endEncoding();
+   // MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
+   // dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
+   // dsd->setDepthWriteEnabled(false);
+   // const auto depthState = _device->newDepthStencilState(dsd);
+   // dsd->release();
+   // encoder->setDepthStencilState(depthState);
 
-      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
+   encoder->setRenderPipelineState(_cubemap->getRenderPipelineState());
+   encoder->setCullMode(MTL::CullModeNone);
+   encoder->setVertexBuffer(_cubemap->getVertexBuffer(),0,0);
+   const auto model = _cubemap->getModel().data();
+   encoder->setVertexBytes(&(model),sizeof(model),1);
+   const auto lookat = _camera->getLookAt().data();
+   const auto proj = _camera->getProj().data();
+   encoder->setVertexBytes(&lookat,sizeof(lookat),2);
+   encoder->setVertexBytes(&proj,sizeof(proj),3);
+   encoder->setFragmentTexture(_cubemap->getTextures(),0);
 
-      encoder->drawIndexedPrimitives(
-         e.getPrimitive(),
-         e.getIndexCount(),
-         MTL::IndexTypeUInt32,
-         e.getIndexBuffer(),
-         0);
-   }
+   encoder->drawIndexedPrimitives(_cubemap->getPrimitive(),
+      _cubemap->getIndexCount(),
+      MTL::IndexTypeUInt32,
+      _cubemap->getIndexBuffer(),
+      0);
 
+   //encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,NS::UInteger{0},NS::UInteger{_cubemap->getVertexCount()});
    encoder->endEncoding();
+
 }
 
 

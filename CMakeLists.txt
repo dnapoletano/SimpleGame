@@ -41,6 +41,7 @@ FetchContent_GetProperties(stb)
 FetchContent_GetProperties(assimp)
 
 add_subdirectory(src)
+add_subdirectory(shaders)
 
 enable_testing()
 include(CTest)

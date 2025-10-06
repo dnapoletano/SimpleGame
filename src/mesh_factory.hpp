@@ -56,7 +56,8 @@ public:
 
 private:
    /// Primitive meshes
-   static auto _cube(const float& length)   -> MeshData;
+   static auto _cube(const float& length)          -> MeshData;
+   static auto _cubeMap()                          -> MeshData;
    static auto _sphere(const float& radius)        -> MeshData;
 
    //an unordered map of mesh and a name
