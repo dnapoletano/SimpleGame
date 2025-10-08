@@ -21,6 +21,7 @@ public:
    Scene(MTL::Device* device, CA::MetalLayer* layer);
    constexpr auto setCamera(Camera* camera) -> void {_camera = camera;}
    auto render(MTL::RenderCommandEncoder * encoder) const -> void;
+   auto renderSkyBox(MTL::RenderCommandEncoder * encoder) const -> void;
    [[nodiscard]] constexpr auto getCamera() const -> Camera* {return _camera;}
    [[nodiscard]] constexpr auto getTexture(const size_t& i) const -> MTL::Texture * {return _unique_textures[i].get()->getTexture();}
 

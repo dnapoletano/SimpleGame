@@ -51,7 +51,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       m->setUpRenderPipeLineState(_layer);
    }
 
-   _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get(),Vector3{100.0f,0.0f,0.0f});
+   _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get(),Vector3{0.0f,0.0f,0.0f});
 
    // for (auto i = 0u; i < 20u; ++i) {
    //    for (auto j = 0u; j < 20u; ++j) {
@@ -101,44 +101,50 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
 }
 
 auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
-   // for (const auto& e: _entities) {
-   //    encoder->setRenderPipelineState(
-   //       e.getRenderPipelineState());
-   //    encoder->setVertexBuffer(e.getVertexBuffer(),0,0);
-   //    encoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
-   //    encoder->setCullMode(MTL::CullModeBack);
-   //    encoder->setDepthStencilState(e.getDepthStencilState());
-   //    encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
-   //    ensure(_camera != nullptr,
-   //       "Camera not setup for render");
-   //    encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
-   //    encoder->setFragmentTexture(e.getTexture(),0);
-   //
-   //    /// could compress this into a unique buffer with offsets?
-   //    encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
-   //    encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
-   //    encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
-   //
-   //    encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
-   //
-   //    encoder->drawIndexedPrimitives(
-   //       e.getPrimitive(),
-   //       e.getIndexCount(),
-   //       MTL::IndexTypeUInt32,
-   //       e.getIndexBuffer(),
-   //       0);
-   // }
 
-   // //encoder->endEncoding();
-   // MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
-   // dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
-   // dsd->setDepthWriteEnabled(false);
-   // const auto depthState = _device->newDepthStencilState(dsd);
-   // dsd->release();
-   // encoder->setDepthStencilState(depthState);
+   //encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,NS::UInteger{0},NS::UInteger{_cubemap->getVertexCount()});
+
+   for (const auto& e: _entities) {
+      encoder->setRenderPipelineState(
+         e.getRenderPipelineState());
+      encoder->setVertexBuffer(e.getVertexBuffer(),0,0);
+      encoder->setFrontFacingWinding(MTL::WindingCounterClockwise);
+      encoder->setCullMode(MTL::CullModeBack);
+      encoder->setDepthStencilState(e.getDepthStencilState());
+      encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
+      ensure(_camera != nullptr,
+         "Camera not setup for render");
+      encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
+      encoder->setFragmentTexture(e.getTexture(),0);
+
+      /// could compress this into a unique buffer with offsets?
+      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
+      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
+      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
+
+      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
+
+      encoder->drawIndexedPrimitives(
+         e.getPrimitive(),
+         e.getIndexCount(),
+         MTL::IndexTypeUInt32,
+         e.getIndexBuffer(),
+         0);
+   }
+}
+
+auto Scene::renderSkyBox(MTL::RenderCommandEncoder * encoder) const -> void {
+   MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
+   dsd->setDepthWriteEnabled(false);
+   dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
+   const auto depthState = _device->newDepthStencilState(dsd);
+   dsd->release();
+   encoder->setDepthStencilState(depthState);
+   depthState->release();
 
    encoder->setRenderPipelineState(_cubemap->getRenderPipelineState());
-   encoder->setCullMode(MTL::CullModeNone);
+   encoder->setFrontFacingWinding(MTL::WindingClockwise);
+   encoder->setCullMode(MTL::CullModeFront);
    encoder->setVertexBuffer(_cubemap->getVertexBuffer(),0,0);
    const auto model = _cubemap->getModel().data();
    encoder->setVertexBytes(&(model),sizeof(model),1);
@@ -153,9 +159,6 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
       MTL::IndexTypeUInt32,
       _cubemap->getIndexBuffer(),
       0);
-
-   //encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,NS::UInteger{0},NS::UInteger{_cubemap->getVertexCount()});
-   encoder->endEncoding();
 
 }
 

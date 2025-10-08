@@ -73,7 +73,7 @@ public:
          MTL::DepthStencilDescriptor::alloc()->init(),
          [](auto t) {t->release();}
       };
-      depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
+      depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
       depth_stencil_descriptor->setDepthWriteEnabled(true);
       _dss = {
          _device->newDepthStencilState(depth_stencil_descriptor.get()),

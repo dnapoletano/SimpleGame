@@ -72,8 +72,7 @@ CubeMap::CubeMap(const std::vector<std::span<const std::byte>> &faces,
    }
    commandBuffer->commit();
    commandBuffer->waitUntilCompleted();
-
-
+   
 
    const auto shader_source = NS::String::string(shader.data(),NS::ASCIIStringEncoding);
    NS::Error * error = nullptr;
