@@ -3,7 +3,8 @@ include(GoogleTest)
 mark_as_advanced(BUILD_GMOCK BUILD_GTEST
         gtest_hide_internal_symbols
 )
-add_executable(unit_tests vector3_test.cpp)
+add_executable(unit_tests vector3_test.cpp
+        matrix_test.cpp)
 target_compile_features(unit_tests PUBLIC cxx_std_23)
 
 target_compile_options(unit_tests PUBLIC -Wall -Wextra -Werror -g)

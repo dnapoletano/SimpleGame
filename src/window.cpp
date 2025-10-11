@@ -26,6 +26,7 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
       ::SDL_Metal_CreateView(_window.get()),
       ::SDL_Metal_DestroyView
    };
+
    game::ensure(_view.get()!=nullptr,
       "Couldn't get metal view");
 
@@ -44,6 +45,8 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
       new Renderer(_device),
       {}
    };
+
+   _renderer->createDepthTexture(_layer->drawableSize().width,_layer->drawableSize().height);
 }
 
 Window::~Window() {

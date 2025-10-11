@@ -16,15 +16,17 @@
 
 auto main() -> int {
    try {
-      game::Window win(1200u,800u);
+      constexpr auto width = 1200u;
+      constexpr auto height = 800u;
+      game::Window win(width,height);
       game::Scene scene{win.getDevice(),win.getLayer()};
 
 
       const game::Camera camera{std::numbers::pi_v<float> / 4.0f,
-                          600.0f,400.0f,
+                          width,height,
                           0.1f,
                           100.0f,
-                          {0.0f, 5.0f, 10.0f},
+                          {0.0f, 1.0f, 2.0f},
                           {0.0f, 0.0f, 0.0f},
                           {0.0f, 1.0f, 0.0f}};
       scene.setCamera(const_cast<game::Camera*>(&camera));

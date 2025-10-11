@@ -56,7 +56,7 @@ public:
 
       pipeline_descriptor->setVertexFunction(_shaderFunctions["vertexShader"]);
       pipeline_descriptor->setFragmentFunction(_shaderFunctions["fragmentShader"]);
-      pipeline_descriptor->setSampleCount(4);
+      pipeline_descriptor->setSampleCount(1);
       pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
       attach->setPixelFormat(layer->pixelFormat());
       NS::Error * error = nullptr;

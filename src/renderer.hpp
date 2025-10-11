@@ -14,12 +14,15 @@ class Renderer {
 public:
    Renderer(MTL::Device* device);
 
+   auto createDepthTexture(const std::uint32_t width, const std::uint32_t height) -> void ;
+
    auto render(const Camera& camera,
       CA::MetalDrawable* surface, Scene& scene) const -> void;
 
-private:
 
+private:
    MTL::Device*    _device{nullptr};
+   AutoRelease<MTL::Texture*> _depthTexture{};
 };
 
 }
