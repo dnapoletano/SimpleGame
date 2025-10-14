@@ -56,7 +56,7 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
 
     VertexPayload payload;
     VertexData vert = vertexData[vertexID];
-    payload.position = proj*(transform*vert.position);
+    payload.position = proj * (transform * vert.position);
     payload.wPosition = transform*vert.position;
     /// these should be transformed
     payload.normal = vert.normal;
@@ -172,14 +172,13 @@ float3 calcSpecularGGX(float3 lightPosition,
     table 5.5: Attributes for fragment function input arguments,
     for more info.
 */
-fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
-                            texture2d_array<float> colorTexture [[texture(0)]],
-                            constant AmbientLight& al           [[buffer(1)]],
-                            constant DirectionalLight& dl       [[buffer(2)]],
-                            constant PointLight& pl             [[buffer(3)]],
-                            constant float3& cameraPosition     [[buffer(4)]])
+fragment float4 fragmentMain(VertexPayload frag [[stage_in]], texture2d_array<float> colorTexture [[texture(0)]],
+                             texturecube<float> skyBox [[texture(1)]],
+                            constant AmbientLight& al           [[buffer(2)]],
+                            constant DirectionalLight& dl       [[buffer(3)]],
+                            constant PointLight& pl             [[buffer(4)]],
+                            constant float3& cameraPosition     [[buffer(5)]])
 {
-
     const auto TBN = float3x3(frag.tangent, frag.bitangent, frag.normal);
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
@@ -196,15 +195,21 @@ fragment float4 fragmentMain(VertexPayload frag                 [[stage_in]],
     const auto normal           = normalize(TBN * normalMap);
     const auto dir_light        = calcDirectionalLight(dl, normal, colorSample);
 
-    const auto point_light = calcSpecularGGX(
-                                   pl.position,
-                                   cameraPosition,
-                                   frag.wPosition.xyz,
-                                   normal,
-                                   pl.colour.rgb * pl.strength, // light color/intensity
-                                   colorSample.rgb,             // albedo from texture
-                                   roughnessSample.r,
-                                   specularSample.r);
+    const auto point_light = calcSpecularGGX(pl.position, cameraPosition, frag.wPosition.xyz, normal,
+                                             pl.colour.rgb * pl.strength, // light color/intensity
+                                             colorSample.rgb, // albedo from texture
+                                             roughnessSample.r, specularSample.r);
+
+    constexpr sampler skyBoxSampler(address::clamp_to_edge, filter::linear);
+    const auto Ivec = normalize(pl.position - cameraPosition);
+    const auto Rvec = refract(Ivec, normalize(normal),1.0f/1.52f);
+    const auto skyBoxLighting =  skyBox.sample(skyBoxSampler,Rvec);
     // Sample the texture to obtain a color
-    return float4((ambient_light.rgb + dir_light.rgb + point_light),1.0f);
+    const auto hdrColor = float4((ambient_light.rgb + dir_light.rgb + point_light + skyBoxLighting.rgb),1.0f);
+    // constexpr auto gamma = 2.2f;
+    // constexpr auto exposure = 0.3f;
+    // auto mappedColor = float3(1.0f) - exp(-hdrColor.rgb * exposure);
+    // mappedColor = pow(mappedColor, float3(1.0f / gamma));
+    // return float4(mappedColor,1.0f);
+    return hdrColor;
 }

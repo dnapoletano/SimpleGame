@@ -116,13 +116,14 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
          "Camera not setup for render");
       encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
       encoder->setFragmentTexture(e.getTexture(),0);
+      encoder->setFragmentTexture(_cubemap->getTextures(),1);
 
       /// could compress this into a unique buffer with offsets?
-      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,1);
-      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,2);
-      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,3);
+      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,2);
+      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,3);
+      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,4);
 
-      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),4);
+      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),5);
 
       encoder->drawIndexedPrimitives(
          e.getPrimitive(),
