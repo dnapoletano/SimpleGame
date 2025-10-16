@@ -66,6 +66,17 @@ public:
       return m;
 
    }
+
+   static constexpr auto orthografic(const float left, const float right,
+      const float bottom, const float top, const float near, const float far) -> Matrix4 {
+      Matrix4 m;
+      m->columns[0] = simd::make_float4(2.0f/(right-left),0.0f,0.0f,0.0f);
+      m->columns[1] = simd::make_float4(0.0f,2.0f/(top-bottom),0.0f,0.0f);
+      m->columns[2] = simd::make_float4(0.0f,0.0f,1.0f/(far-near),0.0f);
+      m->columns[3] = simd::make_float4((left+right)/(left-right),(top+bottom)/(bottom-top),near/(near-far),1.0f);
+      return m;
+   }
+
 private:
    simd::float4x4 _elements;
 };

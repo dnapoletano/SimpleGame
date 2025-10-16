@@ -173,11 +173,10 @@ float3 calcSpecularGGX(float3 lightPosition,
     for more info.
 */
 fragment float4 fragmentMain(VertexPayload frag [[stage_in]], texture2d_array<float> colorTexture [[texture(0)]],
-                             texturecube<float> skyBox [[texture(1)]],
-                            constant AmbientLight& al           [[buffer(2)]],
-                            constant DirectionalLight& dl       [[buffer(3)]],
-                            constant PointLight& pl             [[buffer(4)]],
-                            constant float3& cameraPosition     [[buffer(5)]])
+                             texturecube<float> skyBox [[texture(1)]], texture2d<float> shadowPass [[texture(2)]],
+                             constant AmbientLight &al [[buffer(3)]], constant DirectionalLight &dl [[buffer(4)]],
+                             constant PointLight &pl [[buffer(5)]], constant float3 &cameraPosition [[buffer(6)]],
+                             constant float4x4 &lightProjectionMatrix [[buffer(7)]])
 {
     const auto TBN = float3x3(frag.tangent, frag.bitangent, frag.normal);
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
@@ -200,16 +199,64 @@ fragment float4 fragmentMain(VertexPayload frag [[stage_in]], texture2d_array<fl
                                              colorSample.rgb, // albedo from texture
                                              roughnessSample.r, specularSample.r);
 
-    constexpr sampler skyBoxSampler(address::clamp_to_edge, filter::linear);
-    const auto Ivec = normalize(pl.position - cameraPosition);
-    const auto Rvec = refract(Ivec, normalize(normal),1.0f/1.52f);
-    const auto skyBoxLighting =  skyBox.sample(skyBoxSampler,Rvec);
-    // Sample the texture to obtain a color
-    const auto hdrColor = float4((ambient_light.rgb + dir_light.rgb + point_light + skyBoxLighting.rgb),1.0f);
+    // constexpr sampler skyBoxSampler(address::clamp_to_edge, filter::linear);
+    // const auto Ivec = normalize(pl.position - cameraPosition);
+    // const auto Rvec = refract(Ivec, normalize(normal),1.0f/1.52f);
+    // const auto skyBoxLighting =  skyBox.sample(skyBoxSampler,Rvec);
+
+    float4 positionInLightSpace = lightProjectionMatrix * frag.wPosition;
+    positionInLightSpace.xyz /= positionInLightSpace.w;
+    float2 lightSpaceCoord = positionInLightSpace.xy * 0.5 + 0.5;
+    lightSpaceCoord.y = 1 - lightSpaceCoord.y;
+
+
+    const float2 texelSize = 1.0f / float2(shadowPass.get_width(), shadowPass.get_height());
+    float shadowSample = 0.0f;
+
+
+    constexpr int SHADOW_SAMPLE_COUNT = 16;
+    constexpr float SHADOW_PENUMBRA_SIZE = 2.0f;
+    constexpr float2 poissonDisk[] = {
+      float2( -0.94201624, -0.39906216 ),
+      float2( 0.94558609, -0.76890725 ),
+      float2( -0.094184101, -0.92938870 ),
+      float2( 0.34495938, 0.29387760 ),
+      float2( -0.91588581, 0.45771432 ),
+      float2( -0.81544232, -0.87912464 ),
+      float2( -0.38277543, 0.27676845 ),
+      float2( 0.97484398, 0.75648379 ),
+      float2( 0.44323325, -0.97511554 ),
+      float2( 0.53742981, -0.47373420 ),
+      float2( -0.26496911, -0.41893023 ),
+      float2( 0.79197514, 0.19090188 ),
+      float2( -0.24188840, 0.99706507 ),
+      float2( -0.81409955, 0.91437590 ),
+      float2( 0.19984126, 0.78641367 ),
+      float2( 0.14383161, -0.14100790 )
+    };
+
+    auto random = [](float3 seed, int i) {
+      float dotProduct = dot(float4(seed, i), float4(12.9898, 78.233, 45.164, 94.673));
+      return fract(sin(dotProduct) * 43758.5453);
+    };
+
+    for (auto i = 0u; i <= SHADOW_SAMPLE_COUNT; ++i) {
+       float2 coord = float2(lightSpaceCoord.xy +
+                             normalize(poissonDisk[i]) * random(frag.wPosition.xyz,i) * SHADOW_PENUMBRA_SIZE * texelSize);
+      const float lightDepth = shadowPass.sample(textureSampler, coord).x;
+      shadowSample += (positionInLightSpace.z - 0.0001f> lightDepth) ? 1.0f : 0.0f;
+    }
+
+
+
+    const float visibility = 1.0 - shadowSample / 9.0f;
+
+    const auto hdrColor = float4((ambient_light.rgb + visibility *(dir_light.rgb + point_light)),1.0f);
     // constexpr auto gamma = 2.2f;
     // constexpr auto exposure = 0.3f;
     // auto mappedColor = float3(1.0f) - exp(-hdrColor.rgb * exposure);
     // mappedColor = pow(mappedColor, float3(1.0f / gamma));
     // return float4(mappedColor,1.0f);
-    return hdrColor;
+
+    return  hdrColor;
 }

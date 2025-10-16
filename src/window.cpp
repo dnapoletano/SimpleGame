@@ -47,6 +47,8 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
    };
 
    _renderer->createDepthTexture(_layer->drawableSize().width,_layer->drawableSize().height);
+   _renderer->createShadowTexture(_layer->drawableSize().width,_layer->drawableSize().height);
+   _renderer->shadowPipelineState(_layer);
 }
 
 Window::~Window() {
@@ -67,8 +69,8 @@ auto Window::update(Scene& scene) -> void {
          break;
       case SDL_KEYDOWN:
          switch (_event.key.keysym.sym) {
-            case SDLK_RIGHT:
-            case SDLK_d:
+         case SDLK_RIGHT:
+         case SDLK_d:
                eye = camera.getRight();
                break;
          case SDLK_LEFT:
@@ -102,6 +104,8 @@ auto Window::update(Scene& scene) -> void {
    }
 
    camera.translate(eye);
+
+   _renderer->shadowPass(camera,surface,scene);
    _renderer->render(camera, surface,scene);
 }
 

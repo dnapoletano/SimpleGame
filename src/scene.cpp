@@ -3,6 +3,7 @@
 
 #include "cube_map.hpp"
 #include "mesh_factory.hpp"
+#include "renderer.hpp"
 #include "resource_reader.hpp"
 
 namespace game {
@@ -22,6 +23,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
 
    auto objdata = resourceLoader.loadBytes( (std::filesystem::path(ASSETS_DIR) / "Suzanne.obj").string());
    _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("Suzanne",objdata)}, [](auto t) { t->~Mesh(); }});
+   _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("Plane",objdata)}, [](auto t) { t->~Mesh(); }});
 
    const auto shader_path = std::filesystem::path(SHADERS_DIR) / "textured.metal";
    const auto shader_string = resourceLoader.loadString(shader_path.string());
@@ -52,6 +54,7 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    }
 
    _entities.emplace_back(_unique_meshes[0].get(),_unique_materials[0].get(), _unique_textures[0].get(),Vector3{0.0f,0.0f,0.0f});
+   _entities.emplace_back(_unique_meshes[1].get(), _unique_materials[0].get(),_unique_textures[0].get(),Vector3{0.0f,0.0f,0.0f});
 
    // for (auto i = 0u; i < 20u; ++i) {
    //    for (auto j = 0u; j < 20u; ++j) {
@@ -77,33 +80,30 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       _device->newBuffer(&_pointLight,sizeof(_pointLight),MTL::StorageModeShared),
       [](auto t) { t->release();}
    };
-   const auto cubemapShaderPath = (std::filesystem::path(SHADERS_DIR) / "skybox.metal").string();
-
-   _cubemap = AutoRelease<CubeMap*>{
-            new CubeMap{
-               {
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "right.jpg").string()),
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "left.jpg").string()),
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "top.jpg").string()),
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "bottom.jpg").string()),
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "front.jpg").string()),
-                  resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "back.jpg").string())
-               },
-               resourceLoader.loadString(cubemapShaderPath),
-               2048u,2048u, _device, &mf
-            },
-         [](auto t){t->~CubeMap();}
-   };
-   _cubemap->setUpRenderPipeLineState(_layer);
-   _cubemap->createBuffers(_device);
+   // const auto cubemapShaderPath = (std::filesystem::path(SHADERS_DIR) / "skybox.metal").string();
+   //
+   // _cubemap = AutoRelease<CubeMap*>{
+   //          new CubeMap{
+   //             {
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "right.jpg").string()),
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "left.jpg").string()),
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "top.jpg").string()),
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "bottom.jpg").string()),
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "front.jpg").string()),
+   //                resourceLoader.loadBytes((std::filesystem::path(ASSETS_DIR) / "skybox" / "back.jpg").string())
+   //             },
+   //             resourceLoader.loadString(cubemapShaderPath),
+   //             2048u,2048u, _device, &mf
+   //          },
+   //       [](auto t){t->~CubeMap();}
+   // };
+   // _cubemap->setUpRenderPipeLineState(_layer);
+   // _cubemap->createBuffers(_device);
 
 
 }
 
-auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
-
-   //encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,NS::UInteger{0},NS::UInteger{_cubemap->getVertexCount()});
-
+auto Scene::render(MTL::RenderCommandEncoder *encoder, const RenderPasses renderPass) const -> void {
    for (const auto& e: _entities) {
       encoder->setRenderPipelineState(
          e.getRenderPipelineState());
@@ -114,17 +114,36 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
       encoder->setVertexBytes(&e.getModel().data(),sizeof(e.getModel().data()),1);
       ensure(_camera != nullptr,
          "Camera not setup for render");
-      encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
+
+      const auto orthoProj = Matrix4::orthografic(-10.0f,10.0f,-10.0f,10.0f,-25.0f,25.0f).data();
+      const auto cameraLightView = Matrix4::lookAt(-_pointLight.position,{0.0f,0.0f,0.0f},{0.0f,1.0f,0.0f}).data();
+      const auto lightViewProjMatrix = orthoProj * cameraLightView;
+
+      switch (renderPass) {
+         case RenderPasses::MainPass:
+            default: {
+            encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
+            break;
+         }
+         case RenderPasses::ShadowPass: {
+            encoder->setVertexBytes(&lightViewProjMatrix, sizeof(lightViewProjMatrix),2);
+            break;
+         }
+      }
       encoder->setFragmentTexture(e.getTexture(),0);
-      encoder->setFragmentTexture(_cubemap->getTextures(),1);
-
+      if (_cubemap.get() == nullptr) {
+         encoder->setFragmentTexture(nullptr,1);
+      } else {
+         encoder->setFragmentTexture(_cubemap->getTextures(),1);
+      }
+      encoder->setFragmentTexture(_shadowTexture,2);
       /// could compress this into a unique buffer with offsets?
-      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,2);
-      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,3);
-      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,4);
+      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,3);
+      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,4);
+      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,5);
 
-      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),5);
-
+      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),6);
+      encoder->setFragmentBytes(&lightViewProjMatrix,sizeof(lightViewProjMatrix),7);
       encoder->drawIndexedPrimitives(
          e.getPrimitive(),
          e.getIndexCount(),
@@ -135,6 +154,9 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
 }
 
 auto Scene::renderSkyBox(MTL::RenderCommandEncoder * encoder) const -> void {
+   if (_cubemap.get() == nullptr) {
+      return;
+   }
    MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
    dsd->setDepthWriteEnabled(false);
    dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
