@@ -1,10 +1,8 @@
 #include <print>
 
-#include <numbers>
 #include "error.hpp"
 #include "window.hpp"
 
-#include "mesh.hpp"
 #include "matrix4.hpp"
 
 namespace game {

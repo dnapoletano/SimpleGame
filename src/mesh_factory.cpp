@@ -3,6 +3,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <assimp/camera.h>
 
 
 
@@ -34,12 +35,9 @@ auto MeshFactory::getMeshData(const std::string_view mesh_name, [[maybe_unused]]
    ensure(scene!=nullptr and not (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE),
       "Could not init scene from data");
 
-
    for (const auto loadedMeshes = std::span<::aiMesh *>{scene->mMeshes, scene->mMeshes + scene->mNumMeshes};
         const auto& m: loadedMeshes) {
       if (m->mName.C_Str() == mesh_name) {
-         std::println("Found Mesh {}", m->mName.C_Str());
-
          const auto tofloat4 = [](const ::aiVector3D& v) {return simd::float4{v.x,v.y,v.z,1.0f};};
          const auto tofloat3 = [](const ::aiVector3D& v) {return simd::float3{v.x,v.y,v.z};};
 

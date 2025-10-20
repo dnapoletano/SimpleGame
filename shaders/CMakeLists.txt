@@ -3,6 +3,8 @@ add_library(
         OBJECT
         textured.metal
         skybox.metal
+        general.metal
+        shadow.metal
 )
 
 set_target_properties(shaders PROPERTIES LINKER_LANGUAGE CXX)
