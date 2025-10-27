@@ -27,7 +27,7 @@ public:
    auto static loadFile(const std::filesystem::path &path, auto open_mode) -> std::string {
       const std::ifstream file{path,open_mode};
       ensure(file.is_open(),
-         "Could not open file");
+         std::format("Could not open file in path = {}",path.string()));
 
       std::stringstream strm {};
       strm << file.rdbuf();

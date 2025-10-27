@@ -33,6 +33,7 @@ public:
       memcpy(_pointLightBuffer.get()->contents(),&_pointLight,sizeof(_pointLight));
    }
    [[nodiscard]] constexpr auto getPointLight() const { return _pointLight;}
+   constexpr auto movePointLight(const simd::float3& ds) -> void {_pointLight.move(ds); updatePointLight(_pointLight);}
 
 private:
    std::vector<Entity> _entities;
@@ -54,9 +55,9 @@ private:
    };
 
    PointLight _pointLight{
-      .strength = 50.0f,
+      .strength = 100.0f,
       .colour = {1.0f,1.0f,1.0f,1.0f},
-      .position = {2.0f,5.0f,0.0f}
+      .position = {4.0f,6.0f,1.0f}
    };
 
    AutoRelease<MTL::Buffer*> _ambientLightBuffer{};
@@ -68,6 +69,8 @@ private:
    MTL::Device*    _device{nullptr};
    CA::MetalLayer* _layer{nullptr};
    const MTL::Texture* _shadowTexture{nullptr};
+
+   auto _loadScene(std::span<std::byte> data) -> void;
 };
 }
 #endif // GAME_TUTORIAL_SCENE_HPP

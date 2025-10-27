@@ -20,6 +20,7 @@ struct PointLight {
    float strength;
    simd::float4 colour;
    simd::float3 position;
+   auto move(const simd::float3& ds) -> void { position = position + ds; }
 };
 
 }

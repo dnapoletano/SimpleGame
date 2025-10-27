@@ -47,11 +47,17 @@ using StringMap = std::unordered_map<std::string, T, StringHash, std::equal_to<>
 class MeshFactory {
 public:
    MeshFactory() = default;
+   MeshFactory(std::span<std::byte> data);
    /// certainly non-copyable
    MeshFactory(const MeshFactory&) = delete;
    MeshFactory(MeshFactory&&)      = delete;
 
    [[nodiscard]] auto getMeshData(std::string_view mesh_name, std::span<std::byte>) -> MeshData *;
+   [[nodiscard]] constexpr auto getMeshNames() const {
+      return _loadedMeshes | std::views::transform([](auto &lm){return lm.first;}) | std::ranges::to<std::vector>();
+   }
+
+   auto initAllMeshes(std::span<std::byte>) -> void;
 
 
 private:
@@ -60,8 +66,9 @@ private:
    static auto _cubeMap()                          -> MeshData;
    static auto _sphere(const float& radius)        -> MeshData;
 
-   //an unordered map of mesh and a name
+   ///an unordered map of mesh and a name
    StringMap<MeshData> _loadedMeshes;
+   bool _isInit{false};
 };
 }
 

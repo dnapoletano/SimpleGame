@@ -21,12 +21,11 @@ auto main() -> int {
       game::Window win(width,height);
       game::Scene scene{win.getDevice(),win.getLayer()};
 
-
       const game::Camera camera{std::numbers::pi_v<float> / 4.0f,
                           width,height,
                           0.1f,
                           100.0f,
-                          {0.0f, 1.0f, 2.0f},
+                          {7.4f, 5.0f, 7.0f},
                           {0.0f, 0.0f, 0.0f},
                           {0.0f, 1.0f, 0.0f}};
       scene.setCamera(const_cast<game::Camera*>(&camera));

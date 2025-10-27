@@ -9,7 +9,62 @@
 
 namespace game {
 
+ MeshFactory::MeshFactory(const std::span<std::byte> data) {
+   initAllMeshes(data);
+ }
+
+
+auto MeshFactory::initAllMeshes(const std::span<std::byte> data) -> void {
+
+   auto importer = ::Assimp::Importer{};
+   const auto scene =
+      importer.ReadFileFromMemory(data.data(),data.size(),::aiPostProcessSteps::
+         aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+   ensure(scene!=nullptr and not (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE),
+      "Could not init scene from data");
+    size_t numEqualMeshes = 0;
+
+   for (const auto loadedMeshes = std::span<::aiMesh *>{scene->mMeshes, scene->mMeshes + scene->mNumMeshes};
+        const auto& m: loadedMeshes) {
+      std::println("{}",m->mName.C_Str());
+      const auto tofloat4 = [](const ::aiVector3D& v) {return simd::float4{v.x,v.y,v.z,1.0f};};
+      const auto tofloat3 = [](const ::aiVector3D& v) {return simd::float3{v.x,v.y,v.z};};
+
+      const auto positions = std::span{m->mVertices,m->mVertices+m->mNumVertices} |
+         std::views::transform(tofloat4) | std::ranges::to<std::vector>();
+      const auto normals = std::span{m->mNormals,m->mNormals+m->mNumVertices} |
+         std::views::transform(tofloat3) | std::ranges::to<std::vector>();
+
+      ensure(m->HasTextureCoords(0),"texture coords not available");
+
+      const auto tangents = std::span{m->mTangents, m->mTangents+m->mNumVertices} |
+         std::views::transform(tofloat3) | std::ranges::to<std::vector>();
+
+      const auto bittangents = std::span{m->mBitangents, m->mBitangents+m->mNumVertices} |
+         std::views::transform(tofloat3) | std::ranges::to<std::vector>();
+
+      const auto uvs = std::span{m->mTextureCoords[0],m->mTextureCoords[0]+m->mNumVertices} |
+         std::views::transform([](const auto v) {return simd::float2{v.x,v.y};}) | std::ranges::to<std::vector>();
+
+      std::vector<std::uint32_t> idxs;
+      for (const auto faces = std::span{m->mFaces, m->mFaces + m->mNumFaces}; const auto& f : faces) {
+         for (auto j = 0u; j < f.mNumIndices; ++j) {
+            idxs.emplace_back(f.mIndices[j]);
+         }
+      }
+      const auto basename = std::string{m->mName.C_Str()};
+      const auto meshName = _loadedMeshes.find(m->mName.C_Str()) != std::ranges::cend(_loadedMeshes) ? std::string{basename + std::to_string(++numEqualMeshes)} : basename;
+      _loadedMeshes.emplace(meshName,
+         MeshData{createModelData(positions,normals,tangents,bittangents,normals,uvs),std::move(idxs)});
+   }
+    _isInit = true;
+}
+
+
+
 auto MeshFactory::getMeshData(const std::string_view mesh_name, [[maybe_unused]] const std::span<std::byte> data) -> MeshData * {
+   if (not _isInit) initAllMeshes(data);
    /// look up if we altrady loaded the mesh
    if (const auto mesh_it = _loadedMeshes.find(mesh_name); mesh_it != std::ranges::cend(_loadedMeshes)) {
       return &mesh_it->second;
@@ -24,49 +79,6 @@ auto MeshFactory::getMeshData(const std::string_view mesh_name, [[maybe_unused]]
    } else if (mesh_name == "cube_map") {
       const auto [fst, snd] = _loadedMeshes.emplace("cube_map", _cubeMap());
       return &fst->second;
-   }
-
-
-   auto importer = ::Assimp::Importer{};
-   const auto scene =
-      importer.ReadFileFromMemory(data.data(),data.size(),::aiPostProcessSteps::
-         aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-
-   ensure(scene!=nullptr and not (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE),
-      "Could not init scene from data");
-
-   for (const auto loadedMeshes = std::span<::aiMesh *>{scene->mMeshes, scene->mMeshes + scene->mNumMeshes};
-        const auto& m: loadedMeshes) {
-      if (m->mName.C_Str() == mesh_name) {
-         const auto tofloat4 = [](const ::aiVector3D& v) {return simd::float4{v.x,v.y,v.z,1.0f};};
-         const auto tofloat3 = [](const ::aiVector3D& v) {return simd::float3{v.x,v.y,v.z};};
-
-         const auto positions = std::span{m->mVertices,m->mVertices+m->mNumVertices} |
-            std::views::transform(tofloat4) | std::ranges::to<std::vector>();
-         const auto normals = std::span{m->mNormals,m->mNormals+m->mNumVertices} |
-            std::views::transform(tofloat3) | std::ranges::to<std::vector>();
-
-         ensure(m->HasTextureCoords(0),"texture coords not available");
-
-         const auto tangents = std::span{m->mTangents, m->mTangents+m->mNumVertices} |
-            std::views::transform(tofloat3) | std::ranges::to<std::vector>();
-
-         const auto bittangents = std::span{m->mBitangents, m->mBitangents+m->mNumVertices} |
-            std::views::transform(tofloat3) | std::ranges::to<std::vector>();
-
-         const auto uvs = std::span{m->mTextureCoords[0],m->mTextureCoords[0]+m->mNumVertices} |
-            std::views::transform([](const auto v) {return simd::float2{v.x,v.y};}) | std::ranges::to<std::vector>();
-
-         std::vector<std::uint32_t> idxs;
-         for (const auto faces = std::span{m->mFaces, m->mFaces + m->mNumFaces}; const auto& f : faces) {
-            for (auto j = 0u; j < f.mNumIndices; ++j) {
-               idxs.emplace_back(f.mIndices[j]);
-            }
-         }
-         const auto [fst, snd] = _loadedMeshes.emplace(m->mName.C_Str(),
-            MeshData{createModelData(positions,normals,tangents,bittangents,uvs),std::move(idxs)});
-         return &fst->second;
-      }
    }
    return nullptr;
 }
@@ -106,7 +118,7 @@ auto MeshFactory::_cube(const float& length = 1.0f)   -> MeshData {
          16, 17, 18, 18, 19, 16, // Top
          20, 21, 22, 22, 23, 20 // Bottom
    };
-   return MeshData{createModelData(positions,normals,normals,normals,uvs),std::move(indexes)};
+   return MeshData{createModelData(positions,normals,normals,normals,normals,uvs),std::move(indexes)};
 }
 
 auto MeshFactory::_cubeMap() -> MeshData {
@@ -164,7 +176,7 @@ auto MeshFactory::_cubeMap() -> MeshData {
       // Bottom face
       4, 1, 5,  4, 0, 1
    };
-   return MeshData{createModelData(positions,normals,normals,normals,uvs),std::move(indexes)};
+   return MeshData{createModelData(positions,normals,normals,normals,normals,uvs),std::move(indexes)};
 }
 
 
@@ -208,7 +220,7 @@ auto MeshFactory::_sphere([[maybe_unused]]  const float& radius) -> MeshData {
          idx.emplace_back(first + 1);
       }
    }
-   return MeshData{createModelData(position,normals, normals,normals,uvs),std::move(idx)};
+   return MeshData{createModelData(position,normals, normals,normals,normals,uvs),std::move(idx)};
 }
 
 }

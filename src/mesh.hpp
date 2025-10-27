@@ -15,6 +15,7 @@ struct VertexData {
    simd::float3 normal;
    simd::float3 tangent;
    simd::float3 bitangent;
+   simd::float3 color;
    simd::float2 uv;
 };
 

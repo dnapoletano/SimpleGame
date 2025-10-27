@@ -9,6 +9,7 @@ struct VertexData {
    float3 normal;
    float3 tangent;
    float3 bitangent;
+  float3 color;
    float2 uv;
 };
 
@@ -34,6 +35,7 @@ struct VertexPayload {              //Mesh Vertex Type
     float3 normal;
     float3 tangent;
     float3 bitangent;
+    float3 color;
     float2 uv;                      // UV coordinates/*
     float4 wPosition;
 };
@@ -62,6 +64,7 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
     payload.normal = vert.normal;
     payload.tangent = vert.tangent;
     payload.bitangent = vert.bitangent;
+    payload.color = vert.color;
     payload.uv = vert.uv;
     return payload;
 }
@@ -258,5 +261,5 @@ fragment float4 fragmentMain(VertexPayload frag [[stage_in]], texture2d_array<fl
     // mappedColor = pow(mappedColor, float3(1.0f / gamma));
     // return float4(mappedColor,1.0f);
 
-    return  hdrColor;
+    return hdrColor;
 }

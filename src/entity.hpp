@@ -29,6 +29,12 @@ public:
       _model = rotation * translation;
    }
 
+   Entity(Mesh *const mesh, Material *const material, Texture * const texture,
+   const Matrix4 &transform)
+   : Entity(mesh,material,texture) {
+      _model = transform;
+   }
+
    [[nodiscard]] constexpr auto getVertexData() const -> const VertexData*  { return _mesh->getVertexArray().data();}
    [[nodiscard]] constexpr auto getVertexBuffer() const -> MTL::Buffer*  { return _mesh->getVertexBuffer();}
    [[nodiscard]] constexpr auto getIndexBuffer() const -> MTL::Buffer*  { return _mesh->getIndexBuffer();}
@@ -38,7 +44,10 @@ public:
    [[nodiscard]] constexpr auto getRenderPipelineState() const -> MTL::RenderPipelineState * {return _material->getRenderPipelineState();}
    [[nodiscard]] constexpr auto getDepthStencilState() const -> MTL::DepthStencilState* {return _material->getDepthStencilState();}
    [[nodiscard]] constexpr auto getModel() const -> const Matrix4& {return _model;}
-   [[nodiscard]] constexpr auto getTexture() const -> MTL::Texture * {return _texture->getTexture();}
+   [[nodiscard]] constexpr auto getTexture() const -> MTL::Texture * {
+      if (_texture!=nullptr) return _texture->getTexture();
+      else return nullptr;
+   }
 
    [[nodiscard]] constexpr auto getPrimitive() const -> MTL::PrimitiveType {return _mesh->getPrimitiveType();}
    [[nodiscard]] constexpr auto getVertexCount() const -> size_t {return _mesh->n_verts();}

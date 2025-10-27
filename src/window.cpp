@@ -59,8 +59,8 @@ auto Window::update(Scene& scene) -> void {
    auto camera = *scene.getCamera();
 
    auto eye = Vector3{0.0f,0.0f,0.0f};
-   float yaw = 0.0f;
-   float pitch = 0.0f;
+   [[maybe_unused]] float yaw = 0.0f;
+   [[maybe_unused]] float pitch = 0.0f;
    switch (_event.type) {
       case SDL_QUIT:
          _is_running = false;
@@ -69,19 +69,23 @@ auto Window::update(Scene& scene) -> void {
          switch (_event.key.keysym.sym) {
          case SDLK_RIGHT:
          case SDLK_d:
-               eye = camera.getRight();
+               scene.movePointLight({1.0f,0.0f,0.0f});
+//               eye = camera.getRight();
                break;
          case SDLK_LEFT:
          case SDLK_a:
-               eye = -camera.getRight();
+               scene.movePointLight({-1.0f,0.0f,0.0f});
+               //eye = -camera.getRight();
                break;
          case SDLK_UP:
          case SDLK_w:
-               eye = camera.getDirection();
+               scene.movePointLight({0.0f,1.0f,0.0f});
+               //eye = camera.getDirection();
                break;
          case SDLK_DOWN:
          case SDLK_s:
-               eye = -camera.getDirection();
+               scene.movePointLight({0.0f,-1.0f,0.0f});
+               // eye = -camera.getDirection();
                break;
          case SDLK_ESCAPE:
                _is_running = false;
@@ -91,17 +95,17 @@ auto Window::update(Scene& scene) -> void {
          }
          break;
 
-      case SDL_MOUSEMOTION:
-         yaw   = static_cast<float>(_event.motion.xrel)*0.01f;
-         pitch = static_cast<float>(_event.motion.yrel)*0.01f;
-         camera.adjust_yaw(yaw);
-         camera.adjust_pitch(-pitch);
-         break;
+      // case SDL_MOUSEMOTION:
+      //    yaw   = static_cast<float>(_event.motion.xrel)*0.01f;
+      //    pitch = static_cast<float>(_event.motion.yrel)*0.01f;
+      //    camera.adjust_yaw(yaw);
+      //    camera.adjust_pitch(-pitch);
+      //    break;
       default:
-         break;
+         //break;
    }
 
-   camera.translate(eye);
+   //camera.translate(scene.getPointLight().position);
 
    _renderer->shadowPass(camera,surface,scene);
    _renderer->render(camera, surface,scene);

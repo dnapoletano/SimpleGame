@@ -42,7 +42,7 @@ Texture::Texture(const std::vector<std::vector<std::byte>>& datavec,
       [](auto t) {t->release();}
    };
 
-   AutoRelease<MTL::CommandBuffer*> commandBuffer = {
+   const AutoRelease<MTL::CommandBuffer*> commandBuffer = {
       commandQueue->commandBuffer(),
       [](auto t) {t->release();}
    };

@@ -45,8 +45,7 @@ public:
       /// if the pipeline state is already set, do not do anything
       /// and throw an error, as this should only happen once
       /// per material.
-      ensure(static_cast<bool>(_rps) == false,
-         "Render pipeline state is already set, you shouldn't be here");
+      if (static_cast<bool>(_rps) == true) return;
 
       const auto pipeline_descriptor = AutoRelease<MTL::RenderPipelineDescriptor *,{}>{
          MTL::RenderPipelineDescriptor::alloc()->init(),
