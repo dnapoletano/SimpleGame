@@ -22,12 +22,6 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    auto objdata = resourceLoader.loadBytes( (std::filesystem::path(ASSETS_DIR) /"BlenderRoom"/ "Untitled.gltf").string());
 
    _loadScene(objdata);
-   // for (const auto &u: _unique_meshes) {
-   //    u->createBuffers(_device);
-   // }
-   // for (const auto &m: _unique_materials) {
-   //    m->setUpRenderPipeLineState(_layer);
-   // }
 
    _ambientLightBuffer = {
       _device->newBuffer(&_ambientLight,sizeof(_ambientLight),MTL::StorageModeShared),
@@ -44,73 +38,6 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
       [](auto t) { t->release();}
    };
 
-   return;
-
-   // MeshFactory mf{objdata};
-   // for (const auto& s: mf.getMeshNames()) {
-   //    _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData(s,objdata)}, [](auto t) {t->~Mesh();}});
-   // }
-   // // _unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("",objdata)}, [](auto t) { t->~Mesh(); }});
-   // //_unique_meshes.push_back(AutoRelease<Mesh *>{new Mesh{mf.getMeshData("Plane",objdata)}, [](auto t) { t->~Mesh(); }});
-   //
-   //
-   // const auto shader_path = std::filesystem::path(SHADERS_DIR) / "textured.metal";
-   // const auto shader_string = resourceLoader.loadString(shader_path.string());
-   // _unique_materials.push_back(
-   //       AutoRelease<Material *>{new Material{shader_string, _device}, [](auto t) { t->~Material(); }});
-   //
-   // const auto texture_paths = std::vector<std::filesystem::path>{
-   //    std::filesystem::path(ASSETS_DIR) / "rustediron1-alt2-Unreal-Engine" / "rustediron2_basecolor.png",
-   //    std::filesystem::path(ASSETS_DIR) / "rustediron1-alt2-Unreal-Engine" / "rustediron2_metallic.png",
-   //    std::filesystem::path(ASSETS_DIR) / "rustediron1-alt2-Unreal-Engine" / "rustediron2_roughness.png",
-   //    std::filesystem::path(ASSETS_DIR) / "rustediron1-alt2-Unreal-Engine" / "rustediron2_normal.png"
-   // };
-   //
-   // std::vector<std::vector<std::byte>> textures_data;
-   // for (const auto& t: texture_paths) {
-   //    textures_data.emplace_back(resourceLoader.loadBytes(t.string()));
-   // }
-   //
-   // _unique_textures.push_back(
-   //       AutoRelease<Texture *>{new Texture{
-   //          textures_data, 2048, 2048, _device}, [](auto t) { t->~Texture(); }});
-   //
-   // for (const auto &u: _unique_meshes) {
-   //    u->createBuffers(_device);
-   // }
-   // for (const auto &m: _unique_materials) {
-   //    m->setUpRenderPipeLineState(_layer);
-   // }
-   //
-   // for (const auto& m: _unique_meshes) {
-   //    _entities.emplace_back(m.get(),_unique_materials[0].get(), _unique_textures[0].get(),Vector3{0.0f,0.0f,0.0f});
-   // }
-   //_entities.emplace_back(_unique_meshes[1].get(), _unique_materials[0].get(),_unique_textures[0].get(),Vector3{0.0f,0.0f,0.0f});
-
-   // for (auto i = 0u; i < 20u; ++i) {
-   //    for (auto j = 0u; j < 20u; ++j) {
-   //       _entities.emplace_back(_unique_meshes[0].get(),
-   //          _unique_materials[0].get(), _unique_textures[0].get(),
-   //          Vector3{static_cast<float>(i) * 3.0f-10.f, 0.0f, static_cast<float>(j) * 3.0f-10.0f});
-   //    }
-   // }
-
-
-   /// create Light Buffers
-   // _ambientLightBuffer = {
-   //    _device->newBuffer(&_ambientLight,sizeof(_ambientLight),MTL::StorageModeShared),
-   //    [](auto t) { t->release();}
-   // };
-   //
-   // _directionalLightBuffer = {
-   //    _device->newBuffer(&_directionalLight,sizeof(_directionalLight),MTL::StorageModeShared),
-   //    [](auto t) { t->release();}
-   // };
-   //
-   // _pointLightBuffer = {
-   //    _device->newBuffer(&_pointLight,sizeof(_pointLight),MTL::StorageModeShared),
-   //    [](auto t) { t->release();}
-   // };
    // const auto cubemapShaderPath = (std::filesystem::path(SHADERS_DIR) / "skybox.metal").string();
    //
    // _cubemap = AutoRelease<CubeMap*>{
@@ -132,9 +59,8 @@ Scene::Scene(MTL::Device* device, CA::MetalLayer* layer)
    // _cubemap->createBuffers(_device);
 }
 
-auto Scene::render(MTL::RenderCommandEncoder *encoder, const RenderPasses renderPass) const -> void {
+auto Scene::render(MTL::RenderCommandEncoder *encoder) const -> void {
    for (const auto& e: _entities) {
-      //if (e.getTexture() == nullptr) continue;
       encoder->setRenderPipelineState(
          e.getRenderPipelineState());
       encoder->setVertexBuffer(e.getVertexBuffer(),0,0);
@@ -145,21 +71,7 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder, const RenderPasses render
       ensure(_camera != nullptr,
          "Camera not setup for render");
 
-      const auto orthoProj = Matrix4::orthografic(-10.0f,10.0f,-10.0f,10.0f,-25.0f,25.0f).data();
-      const auto cameraLightView = Matrix4::lookAt(-_pointLight.position,{0.0f,0.0f,0.0f},{0.0f,1.0f,0.0f}).data();
-      const auto lightViewProjMatrix = orthoProj * cameraLightView;
-
-      switch (renderPass) {
-         case RenderPasses::MainPass:
-            default: {
-            encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
-            break;
-         }
-         case RenderPasses::ShadowPass: {
-            encoder->setVertexBytes(&lightViewProjMatrix, sizeof(lightViewProjMatrix),2);
-            break;
-         }
-      }
+      encoder->setVertexBytes(_camera->getData(),_camera->size(),2);
       if (e.getTexture()!=nullptr) {
          encoder->setFragmentTexture(e.getTexture(),0);
       }
@@ -168,14 +80,7 @@ auto Scene::render(MTL::RenderCommandEncoder *encoder, const RenderPasses render
       } else {
          encoder->setFragmentTexture(_cubemap->getTextures(),1);
       }
-      encoder->setFragmentTexture(_shadowTexture,2);
-      /// could compress this into a unique buffer with offsets?
-      encoder->setFragmentBuffer(_ambientLightBuffer.get(),0,3);
-      encoder->setFragmentBuffer(_directionalLightBuffer.get(),0,4);
-      encoder->setFragmentBuffer(_pointLightBuffer.get(),0,5);
 
-      encoder->setFragmentBytes(&_camera->getPosition().data(),sizeof(_camera->getPosition().data()),6);
-      encoder->setFragmentBytes(&lightViewProjMatrix,sizeof(lightViewProjMatrix),7);
       encoder->drawIndexedPrimitives(
          e.getPrimitive(),
          e.getIndexCount(),
@@ -216,6 +121,25 @@ auto Scene::renderSkyBox(MTL::RenderCommandEncoder * encoder) const -> void {
       0);
 
 }
+
+auto Scene::lightingPass(MTL::ComputeCommandEncoder *encoder) const -> void {
+   encoder->setBuffer(_ambientLightBuffer.get(),0,6);
+   encoder->setBuffer(_directionalLightBuffer.get(),0,7);
+   encoder->setBuffer(_pointLightBuffer.get(),0,8);
+   struct sCamera {
+      simd::float3 position{};
+      simd::float4x4 view;
+      simd::float4x4 projection;
+   };
+
+   const sCamera camera {.position = _camera->getPosition().data(),
+      .view = simd::inverse(_camera->getLookAt().data()),
+      .projection = simd::inverse(_camera->getProj().data())
+   };
+
+   encoder->setBytes(&camera,sizeof(sCamera),9);
+}
+
 
 auto Scene::_loadScene([[maybe_unused]]const std::span<std::byte> data) -> void {
    const auto rl = ResourceLoader{std::filesystem::path(ROOT_DIR) / std::filesystem::path(ASSETS_DIR)/"BlenderRoom"};
@@ -279,9 +203,10 @@ auto Scene::_loadScene([[maybe_unused]]const std::span<std::byte> data) -> void 
          };
          std::vector<std::vector<std::byte>> texturesData;
          for (const auto& t: textureTypes) {
-            if (m->GetTexture(t, 0, &texturePath) == aiReturn_SUCCESS)
-            std::println("Loading texture {}", texturePath.C_Str());
-            texturesData.emplace_back(rl.loadBytes(texturePath.C_Str()));
+            if (m->GetTexture(t, 0, &texturePath) == aiReturn_SUCCESS) {
+               std::println("Loading texture {}", texturePath.C_Str());
+               texturesData.emplace_back(rl.loadBytes(texturePath.C_Str()));
+            }
          }
          _unique_textures.push_back(
             AutoRelease<Texture *>{new Texture{

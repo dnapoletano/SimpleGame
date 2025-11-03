@@ -21,11 +21,11 @@ class Scene {
 public:
    Scene(MTL::Device* device, CA::MetalLayer* layer);
    constexpr auto setCamera(Camera* camera) -> void {_camera = camera;}
-   auto render(MTL::RenderCommandEncoder * encoder,const RenderPasses renderPass) const -> void;
+   auto render(MTL::RenderCommandEncoder * encoder) const -> void;
+   auto lightingPass(MTL::ComputeCommandEncoder * encoder) const -> void;
    auto renderSkyBox(MTL::RenderCommandEncoder * encoder) const -> void;
    [[nodiscard]] constexpr auto getCamera() const -> Camera* {return _camera;}
    [[nodiscard]] constexpr auto getTexture(const size_t& i) const -> MTL::Texture * {return _unique_textures[i].get()->getTexture();}
-   constexpr auto setShadowTexture(const MTL::Texture* const texture) {_shadowTexture = texture;}
    constexpr auto updatePointLight(const PointLight& pl ) -> void {
       _pointLight.position = pl.position;
       _pointLight.colour = pl.colour;
@@ -68,7 +68,6 @@ private:
 
    MTL::Device*    _device{nullptr};
    CA::MetalLayer* _layer{nullptr};
-   const MTL::Texture* _shadowTexture{nullptr};
 
    auto _loadScene(std::span<std::byte> data) -> void;
 };

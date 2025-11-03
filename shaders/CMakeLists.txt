@@ -2,6 +2,7 @@ add_library(
         shaders
         OBJECT
         textured.metal
+        lighting.metal
         skybox.metal
         general.metal
         shadow.metal

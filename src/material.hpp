@@ -50,14 +50,23 @@ public:
       const auto pipeline_descriptor = AutoRelease<MTL::RenderPipelineDescriptor *,{}>{
          MTL::RenderPipelineDescriptor::alloc()->init(),
          [](auto t) {t->release();}};
-
-      const auto attach = pipeline_descriptor->colorAttachments()->object(0);
+      const std::array<MTL::PixelFormat,6> formats = {
+         MTL::PixelFormatRGBA16Float,  // positions
+         MTL::PixelFormatRGBA16Float,  // normals
+         MTL::PixelFormatRGBA8Unorm,   // albedo
+         MTL::PixelFormatRGBA8Unorm,   // specular
+         MTL::PixelFormatRGBA8Unorm,   // roughness
+         layer->pixelFormat()    // final output
+         };
+      for (auto i = 0u; i < 6; ++i) {
+         const auto attach = pipeline_descriptor->colorAttachments()->object(i);
+         attach->setPixelFormat(formats[i]);
+      }
 
       pipeline_descriptor->setVertexFunction(_shaderFunctions["vertexShader"]);
       pipeline_descriptor->setFragmentFunction(_shaderFunctions["fragmentShader"]);
       pipeline_descriptor->setSampleCount(1);
       pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
-      attach->setPixelFormat(layer->pixelFormat());
       NS::Error * error = nullptr;
       _rps = {
          _device->newRenderPipelineState(pipeline_descriptor.get(),&error),

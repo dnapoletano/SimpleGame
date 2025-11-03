@@ -36,6 +36,8 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
    game::ensure(_layer!=nullptr,
       "Couldn't get metal layer");
    _layer->setDrawableSize(CGSizeMake(width, height));
+   _layer->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
+   _layer->setAllowsNextDrawableTimeout(false);
    _layer->setDevice(_device);
    _is_running = true;
 
@@ -45,8 +47,8 @@ Window::Window(const std::uint32_t width, const std::uint32_t height){
    };
 
    _renderer->createDepthTexture(_layer->drawableSize().width,_layer->drawableSize().height);
-   _renderer->createShadowTexture(_layer->drawableSize().width,_layer->drawableSize().height);
-   _renderer->shadowPipelineState(_layer);
+   _renderer->createRenderPassesTexture(_layer->drawableSize().width,_layer->drawableSize().height);
+   _renderer->lightingPipelineState();
 }
 
 Window::~Window() {
@@ -56,7 +58,7 @@ Window::~Window() {
 auto Window::update(Scene& scene) -> void {
    const auto surface = _layer->nextDrawable();
    SDL_PollEvent(&_event);
-   auto camera = *scene.getCamera();
+   const auto camera = *scene.getCamera();
 
    auto eye = Vector3{0.0f,0.0f,0.0f};
    [[maybe_unused]] float yaw = 0.0f;
@@ -107,7 +109,7 @@ auto Window::update(Scene& scene) -> void {
 
    //camera.translate(scene.getPointLight().position);
 
-   _renderer->shadowPass(camera,surface,scene);
+   _renderer->geometryPass(camera,surface,scene);
    _renderer->render(camera, surface,scene);
 }
 
