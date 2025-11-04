@@ -281,19 +281,5 @@ kernel void mainFunction(texture2d<float> geometryPass [[texture(0)]], texture2d
                                                 colorSample.rgb, // albedo from texture
                                                 roughnessSample.r, specularSample.r);
 
-  // const auto N = normalize(normal);
-  // const auto Ldir = normalize(dl.direction);
-  // const auto ndotl_dir = max(dot(N, Ldir), 0.0);
-  // const auto Lpoint = normalize(pl.position.xyz - fragWorldPosition.xyz);
-  // const auto ndotl_point = max(dot(N, Lpoint), 0.0);
-
-  // const auto dist = length(pl.position.xyz - fragWorldPosition.xyz);
-  // const auto att_raw = 1.0f / max(dist * dist, 1.0e-3);
-  // const auto att_vis = saturate(att_raw * 10.0f);
-
-  // outputTex.write(float4(ndotl_dir,ndotl_point,att_vis,1.0f),gid);
-
-  // outputTex.write(float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
-  outputTex.write(float4(normal,1.0f),gid); //float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
-  // outputTex.write(float4(fragWorldPosition.xyz * 0.1f  + 0.5, 1.0), gid);
+  outputTex.write(float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
 }
