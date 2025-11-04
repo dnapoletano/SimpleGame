@@ -272,7 +272,7 @@ kernel void mainFunction(texture2d<float> geometryPass [[texture(0)]], texture2d
 
   const auto ambient_light    = calcAmbientLight(al, colorSample);
 
-  const auto normal           = normalize(normalPass.sample(textureSampler, uv).xyz * 2.0f - 1.0f);
+  const auto normal           = normalize(normalPass.sample(textureSampler, uv).xyz);
   const auto dir_light        = calcDirectionalLight(dl, normal, colorSample);
 
   const auto fragWorldPosition = geometryPass.sample(textureSampler, uv);
@@ -294,6 +294,6 @@ kernel void mainFunction(texture2d<float> geometryPass [[texture(0)]], texture2d
   // outputTex.write(float4(ndotl_dir,ndotl_point,att_vis,1.0f),gid);
 
   // outputTex.write(float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
-  outputTex.write(float4(ambient_light.rgb,1.0f),gid); //float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
+  outputTex.write(float4(normal,1.0f),gid); //float4((ambient_light.rgb + (dir_light.rgb + point_light)),1.0f), gid);
   // outputTex.write(float4(fragWorldPosition.xyz * 0.1f  + 0.5, 1.0), gid);
 }

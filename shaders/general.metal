@@ -71,7 +71,7 @@ VertexPayload vertex vertexMain(uint vertexID [[vertex_id]],
 fragment FragmentPayLoad fragmentMain(VertexPayload frag [[stage_in]]) {
   FragmentPayLoad out;
   out.positions = float4(frag.wPosition.xyz,1.0f);
-  out.normals = float4(normalize(frag.normal) * 0.5 + 0.5, 1.0f);
+  out.normals = float4(normalize(frag.normal), 1.0f);
   out.albedo = float4(frag.color,1.0f);
   out.specular = float4(0.0f);
   out.roughness = float4(0.5f);

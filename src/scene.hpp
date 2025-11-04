@@ -44,7 +44,7 @@ private:
    AutoRelease<CubeMap*> _cubemap{};
 
    AmbientLight _ambientLight{
-      .strength = 0.3f,
+      .strength = 0.1f,
       .colour = {1.0f,1.0f,1.0f,1.0f}
    };
 

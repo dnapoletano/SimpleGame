@@ -65,7 +65,7 @@ fragment FragmentPayLoad fragmentMain(VertexPayload frag [[stage_in]], texture2d
   constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
   FragmentPayLoad out;
   out.positions = float4(frag.wPosition.xyz,1.0f);
-  const auto normalMap = normalize(colorTexture.sample(textureSampler, frag.uv, 3).rgb * 0.5f + 0.5f);
+  const auto normalMap = normalize(colorTexture.sample(textureSampler, frag.uv, 3).rgb);
   out.normals           = float4(normalize(TBN * normalMap),1.0f);
   out.albedo      = colorTexture.sample(textureSampler, frag.uv, 0);
   out.specular   = colorTexture.sample(textureSampler, frag.uv, 1);
